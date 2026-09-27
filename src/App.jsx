@@ -20,6 +20,7 @@ import RegistroImmersioni from './pages/RegistroImmersioni'
 import DaFare from './pages/DaFare'
 import Aiuto from './pages/Aiuto'
 import Staff from './pages/Staff'
+import LogModifiche from './pages/LogModifiche'
 
 export default function App() {
   const [session, setSession] = useState(undefined)
@@ -100,6 +101,7 @@ export default function App() {
           <Route path="/da-fare" element={<DaFare membro={membro} />} />
           <Route path="/aiuto" element={<Aiuto />} />
           {membro.ruolo === 'amministratore' && <Route path="/staff" element={<Staff />} />}
+          {membro.ruolo === 'amministratore' && <Route path="/log-modifiche" element={<LogModifiche />} />}
           <Route path="*" element={<Navigate to="/clienti" replace />} />
         </Route>
       </Routes>

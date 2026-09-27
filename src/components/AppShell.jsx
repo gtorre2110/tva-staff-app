@@ -52,6 +52,7 @@ export default function AppShell({ session, membro }) {
 
   if (isAdmin) {
     navItems.push({ to: '/staff', label: 'Staff' })
+    navItems.push({ to: '/log-modifiche', label: 'Log modifiche' })
   }
 
   return (
