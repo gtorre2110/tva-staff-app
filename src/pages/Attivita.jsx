@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { formattaData, formattaOra, formattaDataOra } from '../lib/attivita'
 import { leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
 import SelettoreCategorie from './SelettoreCategorie'
+import { useIsAssistente } from '../lib/membroContext'
 import './Attivita.css'
 import './Cataloghi.css'
 
@@ -17,6 +18,7 @@ const VUOTO = {
 }
 
 export default function Attivita() {
+  const soloAggiungi = useIsAssistente()
   const [occorrenze, setOccorrenze] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -213,9 +215,11 @@ export default function Attivita() {
               >
                 Categorie
               </button>
-              <button className="btn-secondary" onClick={() => toggleAnnullata(a)}>
-                {a.annullata ? 'Riattiva' : 'Annulla'}
-              </button>
+              {!soloAggiungi && (
+                <button className="btn-secondary" onClick={() => toggleAnnullata(a)}>
+                  {a.annullata ? 'Riattiva' : 'Annulla'}
+                </button>
+              )}
             </div>
 
             {categorieAperte === a.id && (

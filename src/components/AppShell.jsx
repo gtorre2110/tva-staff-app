@@ -9,6 +9,7 @@ export default function AppShell({ session, membro }) {
   const [inSospeso, setInSospeso] = useState(0)
 
   const isAdmin = membro?.ruolo === 'amministratore'
+  const isAssistente = membro?.ruolo === 'assistente_istruttore'
 
   useEffect(() => {
     let attivo = true
@@ -43,7 +44,7 @@ export default function AppShell({ session, membro }) {
     { to: '/attivita', label: 'Attività' },
     { to: '/categorie', label: 'Categorie' },
     { to: '/cataloghi', label: 'Cataloghi' },
-    { to: '/codici-invito', label: 'Codici invito' },
+    ...(!isAssistente ? [{ to: '/codici-invito', label: 'Codici invito' }] : []),
     { to: '/registro-immersioni', label: 'Registro immersioni' },
     { to: '/dashboard', label: 'Check-in' },
     { to: '/da-fare', label: 'Da fare', badge: inSospeso },

@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
 import { caricaImmagine } from '../lib/upload'
 import CatalogoSemplice from './CatalogoSemplice'
+import { useIsAssistente } from '../lib/membroContext'
 import './Cataloghi.css'
 
 const TIPO_VUOTO = { didattica: '', tipo_brevetto: '', livello: '', note: '' }
@@ -17,6 +18,7 @@ const SCHEDE = [
 
 export default function Cataloghi() {
   const [scheda, setScheda] = useState('brevetti')
+  const soloAggiungi = useIsAssistente()
 
   return (
     <div className="cataloghi-page">
@@ -39,12 +41,13 @@ export default function Cataloghi() {
         ))}
       </div>
 
-      {scheda === 'brevetti' && <TipiBrevettoTab />}
-      {scheda === 'istruttori' && <IstruttoriTab />}
+      {scheda === 'brevetti' && <TipiBrevettoTab soloAggiungi={soloAggiungi} />}
+      {scheda === 'istruttori' && <IstruttoriTab soloAggiungi={soloAggiungi} />}
       {scheda === 'localita' && (
         <CatalogoSemplice
           tabella="localita_immersione"
           ordinaPer="nome"
+          soloAggiungi={soloAggiungi}
           campi={[
             { chiave: 'nome', etichetta: 'Nome località', obbligatorio: true },
             { chiave: 'note', etichetta: 'Note (facoltative)', obbligatorio: false },
@@ -62,6 +65,7 @@ export default function Cataloghi() {
         <CatalogoSemplice
           tabella="centri_immersione"
           ordinaPer="nome"
+          soloAggiungi={soloAggiungi}
           campi={[
             { chiave: 'nome', etichetta: 'Nome centro', obbligatorio: true },
             { chiave: 'note', etichetta: 'Note (facoltative)', obbligatorio: false },
@@ -79,7 +83,7 @@ export default function Cataloghi() {
   )
 }
 
-function TipiBrevettoTab() {
+function TipiBrevettoTab({ soloAggiungi }) {
   const [tipi, setTipi] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -182,14 +186,16 @@ function TipiBrevettoTab() {
                 <strong>{t.didattica}</strong> — {t.tipo_brevetto}
                 {t.livello && ` (${t.livello})`}
               </span>
-              <span className="catalogo-azioni">
-                <button className="btn-secondary" onClick={() => setForm(leggiBozza(`tipo-brevetto-${t.id}`) || { ...t })}>
-                  Modifica
-                </button>
-                <button className="btn-secondary" onClick={() => elimina(t)}>
-                  Elimina
-                </button>
-              </span>
+              {!soloAggiungi && (
+                <span className="catalogo-azioni">
+                  <button className="btn-secondary" onClick={() => setForm(leggiBozza(`tipo-brevetto-${t.id}`) || { ...t })}>
+                    Modifica
+                  </button>
+                  <button className="btn-secondary" onClick={() => elimina(t)}>
+                    Elimina
+                  </button>
+                </span>
+              )}
             </li>
           ))}
         </ul>
@@ -259,7 +265,7 @@ function TipiBrevettoTab() {
   )
 }
 
-function IstruttoriTab() {
+function IstruttoriTab({ soloAggiungi }) {
   const [istruttori, setIstruttori] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -334,14 +340,16 @@ function IstruttoriTab() {
                 <strong>{i.nome}</strong> — {i.didattica}
                 {i.numero_brevetto_istruttore && ` · n. ${i.numero_brevetto_istruttore}`}
               </span>
-              <span className="catalogo-azioni">
-                <button className="btn-secondary" onClick={() => setForm(leggiBozza(`istruttore-${i.id}`) || { ...i })}>
-                  Modifica
-                </button>
-                <button className="btn-secondary" onClick={() => elimina(i)}>
-                  Elimina
-                </button>
-              </span>
+              {!soloAggiungi && (
+                <span className="catalogo-azioni">
+                  <button className="btn-secondary" onClick={() => setForm(leggiBozza(`istruttore-${i.id}`) || { ...i })}>
+                    Modifica
+                  </button>
+                  <button className="btn-secondary" onClick={() => elimina(i)}>
+                    Elimina
+                  </button>
+                </span>
+              )}
             </li>
           ))}
         </ul>

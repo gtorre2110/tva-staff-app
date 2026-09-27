@@ -21,6 +21,7 @@ import DaFare from './pages/DaFare'
 import Aiuto from './pages/Aiuto'
 import Staff from './pages/Staff'
 import LogModifiche from './pages/LogModifiche'
+import { MembroContext } from './lib/membroContext'
 
 export default function App() {
   const [session, setSession] = useState(undefined)
@@ -85,26 +86,28 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell session={session} membro={membro} />}>
-          <Route path="/" element={<Navigate to="/clienti" replace />} />
-          <Route path="/clienti" element={<Clienti />} />
-          <Route path="/clienti/:id" element={<ClienteDettaglio />} />
-          <Route path="/modelli" element={<Modelli />} />
-          <Route path="/attivita" element={<Attivita />} />
-          <Route path="/categorie" element={<Categorie />} />
-          <Route path="/cataloghi" element={<Cataloghi />} />
-          <Route path="/codici-invito" element={<CodiciInvito />} />
-          <Route path="/registro-immersioni" element={<RegistroImmersioni />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/da-fare" element={<DaFare membro={membro} />} />
-          <Route path="/aiuto" element={<Aiuto />} />
-          {membro.ruolo === 'amministratore' && <Route path="/staff" element={<Staff />} />}
-          {membro.ruolo === 'amministratore' && <Route path="/log-modifiche" element={<LogModifiche />} />}
-          <Route path="*" element={<Navigate to="/clienti" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <MembroContext.Provider value={membro}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppShell session={session} membro={membro} />}>
+            <Route path="/" element={<Navigate to="/clienti" replace />} />
+            <Route path="/clienti" element={<Clienti />} />
+            <Route path="/clienti/:id" element={<ClienteDettaglio />} />
+            <Route path="/modelli" element={<Modelli />} />
+            <Route path="/attivita" element={<Attivita />} />
+            <Route path="/categorie" element={<Categorie />} />
+            <Route path="/cataloghi" element={<Cataloghi />} />
+            <Route path="/codici-invito" element={<CodiciInvito />} />
+            <Route path="/registro-immersioni" element={<RegistroImmersioni />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/da-fare" element={<DaFare membro={membro} />} />
+            <Route path="/aiuto" element={<Aiuto />} />
+            {membro.ruolo === 'amministratore' && <Route path="/staff" element={<Staff />} />}
+            {membro.ruolo === 'amministratore' && <Route path="/log-modifiche" element={<LogModifiche />} />}
+            <Route path="*" element={<Navigate to="/clienti" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </MembroContext.Provider>
   )
 }

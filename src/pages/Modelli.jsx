@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { GIORNI_SETTIMANA, formattaOra, formattaData } from '../lib/attivita'
 import { leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
 import SelettoreCategorie from './SelettoreCategorie'
+import { useIsAssistente } from '../lib/membroContext'
 import './Modelli.css'
 
 const VUOTO = {
@@ -19,6 +20,7 @@ const VUOTO = {
 }
 
 export default function Modelli() {
+  const soloAggiungi = useIsAssistente()
   const [modelli, setModelli] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -173,9 +175,11 @@ export default function Modelli() {
             </p>
 
             <div className="modello-card-actions">
-              <button className="btn-secondary" onClick={() => apriModifica(m)}>
-                Modifica
-              </button>
+              {!soloAggiungi && (
+                <button className="btn-secondary" onClick={() => apriModifica(m)}>
+                  Modifica
+                </button>
+              )}
               <button className="btn-secondary" onClick={() => apriGenerazione(m.id)}>
                 Genera occorrenze
               </button>

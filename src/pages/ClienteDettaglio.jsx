@@ -10,6 +10,7 @@ import LogbookCliente from './LogbookCliente'
 import ConfermaModal from '../components/ConfermaModal'
 import FotoCliente from './FotoCliente'
 import { certificatoScaduto, certificatoInScadenza } from '../lib/clienti'
+import { useIsAssistente } from '../lib/membroContext'
 import './ClienteDettaglio.css'
 
 const VUOTO = {
@@ -26,6 +27,7 @@ const VUOTO = {
 
 export default function ClienteDettaglio() {
   const { id } = useParams()
+  const isAssistente = useIsAssistente()
   const nuovo = id === 'nuovo'
   const navigate = useNavigate()
   const bozzaKey = `cliente-${id}`
@@ -138,7 +140,7 @@ export default function ClienteDettaglio() {
 
       <div className="cliente-dettaglio-header">
         <h1>{nuovo ? 'Nuovo cliente' : `${form.cognome} ${form.nome}`}</h1>
-        {!nuovo && (
+        {!nuovo && !isAssistente && (
           <button
             type="button"
             className="btn-secondary btn-elimina"

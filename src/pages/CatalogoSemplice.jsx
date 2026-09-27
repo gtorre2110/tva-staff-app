@@ -14,7 +14,7 @@ import { leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
  *  - formatoRiga(item): testo da mostrare nell'elenco per una riga
  *  - messaggioElimina(item): testo di conferma per l'eliminazione
  */
-export default function CatalogoSemplice({ tabella, campi, ordinaPer, formatoRiga, messaggioElimina }) {
+export default function CatalogoSemplice({ tabella, campi, ordinaPer, formatoRiga, messaggioElimina, soloAggiungi }) {
   const [righe, setRighe] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -92,17 +92,19 @@ export default function CatalogoSemplice({ tabella, campi, ordinaPer, formatoRig
           {righe.map((r) => (
             <li key={r.id}>
               <span>{formatoRiga ? formatoRiga(r) : r[campi[0].chiave]}</span>
-              <span className="catalogo-azioni">
-                <button
-                  className="btn-secondary"
-                  onClick={() => setForm(leggiBozza(`${tabella}-${r.id}`) || { ...r })}
-                >
-                  Modifica
-                </button>
-                <button className="btn-secondary" onClick={() => elimina(r)}>
-                  Elimina
-                </button>
-              </span>
+              {!soloAggiungi && (
+                <span className="catalogo-azioni">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setForm(leggiBozza(`${tabella}-${r.id}`) || { ...r })}
+                  >
+                    Modifica
+                  </button>
+                  <button className="btn-secondary" onClick={() => elimina(r)}>
+                    Elimina
+                  </button>
+                </span>
+              )}
             </li>
           ))}
         </ul>

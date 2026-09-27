@@ -37,6 +37,16 @@ export default function Staff() {
     else carica()
   }
 
+  async function cambiaRuolo(membro, ruolo) {
+    const { error: updateError } = await supabase
+      .from('membri_staff')
+      .update({ ruolo })
+      .eq('id', membro.id)
+
+    if (updateError) setError(updateError.message)
+    else carica()
+  }
+
   async function confermaElimina() {
     setEliminazione(true)
     const { error: deleteError } = await supabase
@@ -99,9 +109,20 @@ export default function Staff() {
                 <li key={m.id}>
                   <span>
                     {m.cognome} {m.nome}
-                    <span className={'badge ' + (m.ruolo === 'amministratore' ? 'badge-ok' : 'badge-neutro')} style={{ marginLeft: '0.6rem' }}>
-                      {m.ruolo}
-                    </span>
+                    {m.ruolo === 'amministratore' ? (
+                      <span className="badge badge-ok" style={{ marginLeft: '0.6rem' }}>
+                        amministratore
+                      </span>
+                    ) : (
+                      <select
+                        value={m.ruolo}
+                        onChange={(e) => cambiaRuolo(m, e.target.value)}
+                        style={{ marginLeft: '0.6rem' }}
+                      >
+                        <option value="staff">staff</option>
+                        <option value="assistente_istruttore">assistente istruttore</option>
+                      </select>
+                    )}
                   </span>
                   {m.ruolo !== 'amministratore' && (
                     <span className="catalogo-azioni">
