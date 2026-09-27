@@ -1,0 +1,81 @@
+.categorie-page {
+  max-width: 30rem;
+}
+
+.categorie-page h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.categorie-sub {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin: 0.4rem 0 1.5rem;
+}
+
+.categoria-form {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.categoria-form input {
+  flex: 1;
+  min-width: 10rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--chalk-dim);
+  border-radius: 6px;
+}
+
+.categoria-form select {
+  flex: 1;
+  min-width: 12rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--chalk-dim);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+}
+}
+
+.staff-sezione-titolo {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin: 1.75rem 0 0.75rem;
+}
+
+.categorie-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.categorie-list li {
+  background: #fff;
+  border: 1px solid var(--chalk-dim);
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.categorie-list li.categorie-figlia {
+  margin-left: 1.75rem;
+  background: var(--chalk);
+  font-weight: 400;
+  font-size: 0.88rem;
+}

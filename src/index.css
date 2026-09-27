@@ -1,0 +1,48 @@
+:root {
+  --ink: #006699;
+  --ink-soft: #136d95;
+  --chalk: #f4fafe;
+  --chalk-dim: #dceaf3;
+  --accent: #33a4d7;
+  --accent-dim: #1f84b0;
+  --line-green: #2f6f5e;
+  --alert: #b23a3a;
+  --warning: #b8721f;
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--chalk);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,9 @@
+.catalogo-list a {
+  color: var(--accent-dim);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.catalogo-list a:hover {
+  text-decoration: underline;
+}

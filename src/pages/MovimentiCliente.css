@@ -1,0 +1,95 @@
+.movimenti-box {
+  background: #fff;
+  border: 1px solid var(--chalk-dim);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.movimenti-box h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0 0 1rem;
+}
+
+.movimenti-form {
+  display: grid;
+  grid-template-columns: 7rem 1fr auto;
+  gap: 0.6rem;
+}
+
+.movimenti-form input {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border: 1.5px solid var(--chalk-dim);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.movimenti-form input:focus {
+  border-color: var(--accent);
+}
+
+.movimenti-form button {
+  border: none;
+  cursor: pointer;
+}
+
+.movimenti-hint {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0.5rem 0 0;
+}
+
+.movimenti-error {
+  color: var(--alert);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.movimenti-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--chalk-dim);
+}
+
+.movimenti-list li {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--chalk-dim);
+  font-size: 0.88rem;
+}
+
+.movimenti-valore {
+  font-weight: 700;
+  color: var(--line-green);
+}
+
+.movimenti-valore.negativo {
+  color: var(--alert);
+}
+
+.movimenti-motivo {
+  color: var(--ink);
+}
+
+.movimenti-data {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 500px) {
+  .movimenti-form {
+    grid-template-columns: 1fr;
+  }
+}

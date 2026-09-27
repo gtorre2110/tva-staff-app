@@ -1,0 +1,95 @@
+.cataloghi-page {
+  max-width: 40rem;
+}
+
+.cataloghi-page h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.cataloghi-page > .catalogo-sezione-header {
+  margin-bottom: 0;
+}
+
+.cataloghi-page > .catalogo-sezione-header h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.cataloghi-tabs {
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--chalk-dim);
+  margin: 1.25rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cataloghi-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.6rem 0.2rem;
+  margin-right: 1.25rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.cataloghi-tab:hover {
+  color: var(--ink);
+}
+
+.cataloghi-tab.active {
+  color: var(--accent-dim);
+  border-bottom-color: var(--accent);
+}
+
+.catalogo-sezione {
+  margin-top: 2rem;
+}
+
+.catalogo-sezione-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.catalogo-sezione-header h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.catalogo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.catalogo-list li {
+  background: #fff;
+  border: 1px solid var(--chalk-dim);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.catalogo-azioni {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}

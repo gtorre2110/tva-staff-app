@@ -1,0 +1,146 @@
+.login-screen {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  min-height: 100vh;
+}
+
+.login-hero {
+  position: relative;
+  background: var(--ink);
+  color: var(--chalk);
+  display: flex;
+  align-items: flex-end;
+  padding: 3rem;
+  overflow: hidden;
+}
+
+.login-hero-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+}
+
+.login-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 26rem;
+}
+
+.login-hero-logo {
+  width: 8rem;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.login-hero-kicker {
+  display: inline-block;
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.login-hero h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  line-height: 1.05;
+  margin: 0 0 1rem;
+}
+
+.login-hero p {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #c7cdd4;
+  margin: 0;
+}
+
+.login-panel {
+  background: var(--chalk);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 22rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.7rem;
+  margin: 0 0 1.75rem;
+}
+
+.login-form label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  margin-top: 1.1rem;
+}
+
+.login-form label:first-of-type {
+  margin-top: 0;
+}
+
+.login-form input {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid var(--chalk-dim);
+  background: #fff;
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+.login-form input:focus {
+  border-color: var(--accent);
+}
+
+.login-error {
+  color: var(--alert);
+  font-size: 0.9rem;
+  margin: 1rem 0 0;
+}
+
+.login-form button {
+  margin-top: 1.75rem;
+  background: var(--accent);
+  color: var(--ink);
+  border: none;
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.login-form button:hover:not(:disabled) {
+  background: var(--accent-dim);
+}
+
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 800px) {
+  .login-screen {
+    grid-template-columns: 1fr;
+  }
+
+  .login-hero {
+    min-height: 40vh;
+    padding: 2rem;
+    align-items: center;
+  }
+}

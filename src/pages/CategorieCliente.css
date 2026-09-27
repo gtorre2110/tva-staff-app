@@ -1,0 +1,47 @@
+.categorie-cliente-box {
+  background: #fff;
+  border: 1px solid var(--chalk-dim);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.categorie-cliente-box h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0 0 0.3rem;
+}
+
+.categorie-cliente-hint {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0 0 1rem;
+}
+
+.categorie-cliente-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  border: 1.5px solid var(--chalk-dim);
+  background: #fff;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+.chip-attivo {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink);
+}

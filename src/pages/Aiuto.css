@@ -1,0 +1,34 @@
+.aiuto-page {
+  max-width: 42rem;
+}
+
+.aiuto-page h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.aiuto-page section {
+  margin-top: 1.75rem;
+}
+
+.aiuto-page h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--accent-dim);
+  margin: 0 0 0.4rem;
+}
+
+.aiuto-page p,
+.aiuto-page li {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.aiuto-page ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}

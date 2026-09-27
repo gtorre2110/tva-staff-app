@@ -1,0 +1,30 @@
+.conferma-modale {
+  max-width: 26rem;
+}
+
+.conferma-testo {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0 0 0.5rem;
+}
+
+.btn-elimina-conferma {
+  background: var(--alert);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.65rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-elimina-conferma:hover:not(:disabled) {
+  background: #8f2d2d;
+}
+
+.btn-elimina-conferma:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

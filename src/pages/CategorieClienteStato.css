@@ -1,0 +1,106 @@
+.categorie-cliente-box {
+  background: #fff;
+  border: 1px solid var(--chalk-dim);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.categorie-cliente-box h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0 0 0.3rem;
+}
+
+.categorie-cliente-hint {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0 0 1rem;
+}
+
+.categorie-cliente-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.categorie-cliente-gruppi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.categorie-cliente-gruppo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+}
+
+.categorie-cliente-gruppo:has(.chip-stato + .chip-stato) {
+  background: var(--chalk);
+}
+
+.chip-stato {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.chip-stato-toggle {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+}
+
+.chip-stato-neutro .chip-stato-toggle {
+  background: #fff;
+  border: 1.5px solid var(--chalk-dim);
+  color: var(--ink-soft);
+}
+
+.chip-stato-neutro .chip-stato-toggle:hover {
+  border-color: var(--accent);
+}
+
+.chip-stato-confermata .chip-stato-toggle {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.chip-stato-richiesta {
+  background: #d6ecf7;
+  color: var(--ink);
+  padding: 0.3rem 0.3rem 0.3rem 0.9rem;
+}
+
+.chip-stato-richiesta .chip-stato-nome {
+  padding: 0;
+}
+
+.chip-stato-azione {
+  background: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 999px;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.chip-stato-azione:hover {
+  background: #fff;
+}
