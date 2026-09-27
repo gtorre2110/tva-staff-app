@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { scaricaCSV } from '../lib/csv'
+import BottoneDrive from '../components/BottoneDrive'
 import { formattaData, formattaOra } from '../lib/attivita'
 import './Cataloghi.css'
 import './RegistroImmersioni.css'
@@ -61,33 +62,39 @@ function RegistroPostEvento() {
     setLoading(false)
   }
 
+  const colonneCSV = [
+    { chiave: 'data', etichetta: 'Data' },
+    { chiave: 'ora_inizio', etichetta: 'Orario inizio' },
+    { chiave: 'ora_fine', etichetta: 'Orario fine' },
+    { chiave: 'localita', etichetta: 'Località' },
+    { chiave: 'centro_immersione', etichetta: 'Centro di immersione' },
+    { chiave: 'istruttore', etichetta: 'Istruttore' },
+    { chiave: 'partecipanti', etichetta: 'Partecipanti' },
+    { chiave: 'brevetti', etichetta: 'Brevetti' },
+    { chiave: 'profondita_massima_raggiunta', etichetta: 'Profondità massima raggiunta (m)' },
+    { chiave: 'autorespiratori', etichetta: 'Autorespiratore/i' },
+    { chiave: 'miscele', etichetta: 'Miscela/e' },
+  ]
+
   function esporta() {
-    scaricaCSV(
-      'registro-immersioni-post-evento.csv',
-      [
-        { chiave: 'data', etichetta: 'Data' },
-        { chiave: 'ora_inizio', etichetta: 'Orario inizio' },
-        { chiave: 'ora_fine', etichetta: 'Orario fine' },
-        { chiave: 'localita', etichetta: 'Località' },
-        { chiave: 'centro_immersione', etichetta: 'Centro di immersione' },
-        { chiave: 'istruttore', etichetta: 'Istruttore' },
-        { chiave: 'partecipanti', etichetta: 'Partecipanti' },
-        { chiave: 'brevetti', etichetta: 'Brevetti' },
-        { chiave: 'profondita_massima_raggiunta', etichetta: 'Profondità massima raggiunta (m)' },
-        { chiave: 'autorespiratori', etichetta: 'Autorespiratore/i' },
-        { chiave: 'miscele', etichetta: 'Miscela/e' },
-      ],
-      righe
-    )
+    scaricaCSV('registro-immersioni-post-evento.csv', colonneCSV, righe)
   }
 
   return (
     <div>
       <div className="catalogo-sezione-header">
         <div />
-        <button className="btn-primary" onClick={esporta} disabled={righe.length === 0}>
-          Esporta CSV
-        </button>
+        <span className="catalogo-azioni">
+          <button className="btn-primary" onClick={esporta} disabled={righe.length === 0}>
+            Esporta CSV
+          </button>
+          <BottoneDrive
+            nomeFile="registro-immersioni-post-evento.csv"
+            colonne={colonneCSV}
+            righe={righe}
+            disabled={righe.length === 0}
+          />
+        </span>
       </div>
 
       {error && <p className="modelli-error">{error}</p>}
@@ -205,17 +212,15 @@ function RegistroPreEvento() {
 
   const attivitaSelezionata = occorrenze.find((o) => o.id === selezionata)
 
+  const colonneCSV = [
+    { chiave: 'cognome', etichetta: 'Cognome' },
+    { chiave: 'nome', etichetta: 'Nome' },
+    { chiave: 'brevetto', etichetta: 'Brevetto più alto' },
+  ]
+
   function esporta() {
     if (!attivitaSelezionata) return
-    scaricaCSV(
-      `registro-pre-evento-${attivitaSelezionata.data}.csv`,
-      [
-        { chiave: 'cognome', etichetta: 'Cognome' },
-        { chiave: 'nome', etichetta: 'Nome' },
-        { chiave: 'brevetto', etichetta: 'Brevetto più alto' },
-      ],
-      iscritti
-    )
+    scaricaCSV(`registro-pre-evento-${attivitaSelezionata.data}.csv`, colonneCSV, iscritti)
   }
 
   return (
@@ -242,9 +247,17 @@ function RegistroPreEvento() {
         <>
           <div className="catalogo-sezione-header">
             <div />
-            <button className="btn-primary" onClick={esporta} disabled={iscritti.length === 0}>
-              Esporta CSV
-            </button>
+            <span className="catalogo-azioni">
+              <button className="btn-primary" onClick={esporta} disabled={iscritti.length === 0}>
+                Esporta CSV
+              </button>
+              <BottoneDrive
+                nomeFile={attivitaSelezionata ? `registro-pre-evento-${attivitaSelezionata.data}.csv` : 'registro-pre-evento.csv'}
+                colonne={colonneCSV}
+                righe={iscritti}
+                disabled={iscritti.length === 0}
+              />
+            </span>
           </div>
 
           {loadingIscritti ? (

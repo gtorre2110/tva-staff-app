@@ -52,3 +52,21 @@
     gap: 0.4rem;
   }
 }
+
+.bottone-drive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bottone-drive-esito {
+  font-size: 0.8rem;
+}
+
+.bottone-drive-esito.ok {
+  color: #2e7d4f;
+}
+
+.bottone-drive-esito.errore {
+  color: #b3382c;
+}
