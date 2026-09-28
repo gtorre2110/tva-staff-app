@@ -57,6 +57,12 @@
   flex-shrink: 0;
 }
 
+.log-elemento {
+  font-weight: 600;
+  color: var(--ink, #222);
+  flex-shrink: 0;
+}
+
 .log-descrizione {
   color: var(--ink-soft);
   flex: 1;

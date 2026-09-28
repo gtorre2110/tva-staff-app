@@ -38,7 +38,7 @@ function etichettaTabella(t) {
   return TABELLE_LABEL[t] || t
 }
 
-function descriviRiga(r) {
+function descriviModifica(r) {
   if (r.operazione === 'INSERT') return 'Nuovo elemento creato'
   if (r.operazione === 'DELETE') return 'Elemento eliminato'
   if (r.campi_modificati) return `Campi modificati: ${r.campi_modificati}`
@@ -141,7 +141,8 @@ export default function LogModifiche() {
             <div className="log-riga-sommario">
               <span className={`log-badge log-badge-${r.operazione}`}>{OPERAZIONE_LABEL[r.operazione] || r.operazione}</span>
               <span className="log-tabella">{etichettaTabella(r.tabella)}</span>
-              <span className="log-descrizione">{descriviRiga(r)}</span>
+              <span className="log-elemento">{r.descrizione || '—'}</span>
+              <span className="log-descrizione">{descriviModifica(r)}</span>
               <span className="log-meta">
                 {r.utente_nome || 'Utente sconosciuto'} · {formattaDataOra(r.creato_il)}
               </span>
