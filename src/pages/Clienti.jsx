@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { certificatoScaduto, certificatoInScadenza, formattaData } from '../lib/clienti'
+import { useIsAssistente } from '../lib/membroContext'
 import './Clienti.css'
 
 export default function Clienti() {
+  const isAssistente = useIsAssistente()
   const [clienti, setClienti] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -47,9 +49,11 @@ export default function Clienti() {
             {loading ? 'Caricamento…' : `${clientiFiltrati.length} di ${clienti.length}`}
           </p>
         </div>
-        <Link to="nuovo" className="btn-primary">
-          + Nuovo cliente
-        </Link>
+        {!isAssistente && (
+          <Link to="nuovo" className="btn-primary">
+            + Nuovo cliente
+          </Link>
+        )}
       </div>
 
       <input
@@ -70,9 +74,11 @@ export default function Clienti() {
         {clientiFiltrati.map((cliente) => {
           const scaduto = certificatoScaduto(cliente)
           const inScadenza = certificatoInScadenza(cliente)
+          const CardTag = isAssistente ? 'div' : Link
+          const cardProps = isAssistente ? {} : { to: String(cliente.id) }
 
           return (
-            <Link to={String(cliente.id)} key={cliente.id} className="cliente-card">
+            <CardTag key={cliente.id} className="cliente-card" {...cardProps}>
               <div className="cliente-card-top">
                 <h2>
                   {cliente.cognome} {cliente.nome}
@@ -114,7 +120,7 @@ export default function Clienti() {
                   {cliente.email && <span>{cliente.email}</span>}
                 </div>
               )}
-            </Link>
+            </CardTag>
           )
         })}
       </div>

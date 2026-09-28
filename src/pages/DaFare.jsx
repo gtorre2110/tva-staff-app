@@ -7,6 +7,7 @@ import './DaFare.css'
 
 export default function DaFare({ membro }) {
   const isAdmin = membro?.ruolo === 'amministratore'
+  const isAssistente = membro?.ruolo === 'assistente_istruttore'
   const [staffInAttesa, setStaffInAttesa] = useState([])
   const [categorieRichieste, setCategorieRichieste] = useState([])
   const [logbookDaConfermare, setLogbookDaConfermare] = useState([])
@@ -123,9 +124,13 @@ export default function DaFare({ membro }) {
             {categorieRichieste.map((r) => (
               <li key={`${r.cliente_id}-${r.categoria_id}`}>
                 <span>
-                  <Link to={`/clienti/${r.cliente_id}`}>
-                    {r.clienti?.cognome} {r.clienti?.nome}
-                  </Link>
+                  {isAssistente ? (
+                    <strong>{r.clienti?.cognome} {r.clienti?.nome}</strong>
+                  ) : (
+                    <Link to={`/clienti/${r.cliente_id}`}>
+                      {r.clienti?.cognome} {r.clienti?.nome}
+                    </Link>
+                  )}
                   {' → '}
                   {r.categorie?.nome}
                 </span>
@@ -150,9 +155,13 @@ export default function DaFare({ membro }) {
             {logbookDaConfermare.map((v) => (
               <li key={v.id}>
                 <span>
-                  <Link to={`/clienti/${v.cliente_id}`}>
-                    {v.clienti?.cognome} {v.clienti?.nome}
-                  </Link>
+                  {isAssistente ? (
+                    <strong>{v.clienti?.cognome} {v.clienti?.nome}</strong>
+                  ) : (
+                    <Link to={`/clienti/${v.cliente_id}`}>
+                      {v.clienti?.cognome} {v.clienti?.nome}
+                    </Link>
+                  )}
                   {' — '}
                   {formattaData(v.data)}
                   {(v.localita_immersione?.nome || v.luogo) && ` · ${v.localita_immersione?.nome || v.luogo}`}

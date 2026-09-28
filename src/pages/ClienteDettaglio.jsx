@@ -41,8 +41,14 @@ export default function ClienteDettaglio() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (isAssistente) {
+      navigate('/clienti', { replace: true })
+      return
+    }
     if (!nuovo) caricaCliente()
   }, [id])
+
+  if (isAssistente) return null
 
   async function caricaCliente() {
     setLoading(true)
