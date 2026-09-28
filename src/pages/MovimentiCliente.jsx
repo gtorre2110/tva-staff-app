@@ -2,10 +2,19 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import './MovimentiCliente.css'
 
+// Testi standard sempre proposti, anche se non ancora usati da nessuno.
+const MOTIVI_STANDARD = [
+  'Rinnovo abbonamento',
+  'Acquisto pacchetto ingressi',
+  'Correzione saldo',
+  'Omaggio / promozione',
+]
+
 export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
   const [movimenti, setMovimenti] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [motiviUsati, setMotiviUsati] = useState([])
 
   const [variazione, setVariazione] = useState('')
   const [motivo, setMotivo] = useState('')
@@ -14,6 +23,24 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
   useEffect(() => {
     caricaMovimenti()
   }, [clienteId])
+
+  useEffect(() => {
+    caricaMotiviUsati()
+  }, [])
+
+  async function caricaMotiviUsati() {
+    const { data } = await supabase
+      .from('clienti_movimenti')
+      .select('motivo')
+      .not('motivo', 'is', null)
+      .order('creato_il', { ascending: false })
+      .limit(300)
+
+    const unici = [...new Set((data || []).map((r) => r.motivo).filter(Boolean))]
+    setMotiviUsati(unici)
+  }
+
+  const suggerimentiMotivo = [...new Set([...MOTIVI_STANDARD, ...motiviUsati])]
 
   async function caricaMovimenti() {
     setLoading(true)
@@ -57,6 +84,7 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
     setVariazione('')
     setMotivo('')
     await caricaMovimenti()
+    await caricaMotiviUsati()
     onSaldoAggiornato?.()
   }
 
@@ -77,7 +105,13 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
           placeholder="Motivo (es. rinnovo abbonamento)"
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
+          list="motivi-suggeriti"
         />
+        <datalist id="motivi-suggeriti">
+          {suggerimentiMotivo.map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
         <button type="submit" className="btn-primary" disabled={salvataggio}>
           {salvataggio ? 'Registro…' : 'Registra'}
         </button>
