@@ -12,6 +12,15 @@ const VUOTO = {
   tipo_autorespiratore: '', miscela_utilizzata: '',
   profondita_programmata: '', profondita_raggiunta: '',
   corso: '', note: '',
+  numero_uscita: '', specchio_acqua: '',
+  coordinate_lat: '', coordinate_long: '',
+  compagno_immersione: '',
+  condizioni_cielo: '', condizioni_superficie: '', visibilita: '',
+  temperatura_acqua: '', temperatura_aria: '',
+  numero_tuffi: '', tempo_max_immersione: '', profondita_min_raggiunta: '',
+  assetto: '',
+  muta_giacca_mm: '', muta_pantaloni_mm: '', muta_bermuda_mm: '',
+  guanti_mm: '', calzari_mm: '', zavorra_kg: '', pinne: '',
 }
 
 export default function LogbookCliente({ clienteId }) {
@@ -92,6 +101,27 @@ export default function LogbookCliente({ clienteId }) {
       profondita_raggiunta: form.profondita_raggiunta === '' ? null : Number(form.profondita_raggiunta),
       corso: form.corso.trim() || null,
       note: form.note.trim() || null,
+      numero_uscita: form.numero_uscita === '' ? null : Number(form.numero_uscita),
+      specchio_acqua: form.specchio_acqua || null,
+      coordinate_lat: form.coordinate_lat.trim() || null,
+      coordinate_long: form.coordinate_long.trim() || null,
+      compagno_immersione: form.compagno_immersione.trim() || null,
+      condizioni_cielo: form.condizioni_cielo || null,
+      condizioni_superficie: form.condizioni_superficie || null,
+      visibilita: form.visibilita || null,
+      temperatura_acqua: form.temperatura_acqua === '' ? null : Number(form.temperatura_acqua),
+      temperatura_aria: form.temperatura_aria === '' ? null : Number(form.temperatura_aria),
+      numero_tuffi: form.numero_tuffi === '' ? null : Number(form.numero_tuffi),
+      tempo_max_immersione: form.tempo_max_immersione.trim() || null,
+      profondita_min_raggiunta: form.profondita_min_raggiunta === '' ? null : Number(form.profondita_min_raggiunta),
+      assetto: form.assetto || null,
+      muta_giacca_mm: form.muta_giacca_mm === '' ? null : Number(form.muta_giacca_mm),
+      muta_pantaloni_mm: form.muta_pantaloni_mm === '' ? null : Number(form.muta_pantaloni_mm),
+      muta_bermuda_mm: form.muta_bermuda_mm === '' ? null : Number(form.muta_bermuda_mm),
+      guanti_mm: form.guanti_mm === '' ? null : Number(form.guanti_mm),
+      calzari_mm: form.calzari_mm === '' ? null : Number(form.calzari_mm),
+      zavorra_kg: form.zavorra_kg === '' ? null : Number(form.zavorra_kg),
+      pinne: form.pinne.trim() || null,
     }
 
     const { error: insertError } = await supabase.from('logbook').insert(payload)
@@ -312,6 +342,220 @@ export default function LogbookCliente({ clienteId }) {
                 step="0.1"
                 value={form.profondita_raggiunta}
                 onChange={(e) => setForm((p) => ({ ...p, profondita_raggiunta: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>N° Uscita</label>
+              <input
+                type="number"
+                value={form.numero_uscita}
+                onChange={(e) => setForm((p) => ({ ...p, numero_uscita: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Lago o mare</label>
+              <select
+                value={form.specchio_acqua}
+                onChange={(e) => setForm((p) => ({ ...p, specchio_acqua: e.target.value }))}
+              >
+                <option value="">Non specificato</option>
+                <option value="lago">Lago</option>
+                <option value="mare">Mare</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-field">
+              <label>Coordinate Lat.</label>
+              <input
+                value={form.coordinate_lat}
+                onChange={(e) => setForm((p) => ({ ...p, coordinate_lat: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Coordinate Long.</label>
+              <input
+                value={form.coordinate_long}
+                onChange={(e) => setForm((p) => ({ ...p, coordinate_long: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label>Compagno/Guida/Istruttore</label>
+            <input
+              value={form.compagno_immersione}
+              onChange={(e) => setForm((p) => ({ ...p, compagno_immersione: e.target.value }))}
+            />
+          </div>
+
+          <h3>Condizioni ambientali</h3>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Cielo</label>
+              <select
+                value={form.condizioni_cielo}
+                onChange={(e) => setForm((p) => ({ ...p, condizioni_cielo: e.target.value }))}
+              >
+                <option value="">Non specificato</option>
+                <option value="sereno">Sereno</option>
+                <option value="velato">Velato</option>
+                <option value="coperto">Coperto</option>
+                <option value="pioggia">Pioggia</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label>Superficie</label>
+              <select
+                value={form.condizioni_superficie}
+                onChange={(e) => setForm((p) => ({ ...p, condizioni_superficie: e.target.value }))}
+              >
+                <option value="">Non specificato</option>
+                <option value="calma">Calma</option>
+                <option value="quasi_calma">Quasi calma</option>
+                <option value="mossa">Mossa</option>
+                <option value="molto_mossa">Molto mossa</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Visibilità</label>
+              <select
+                value={form.visibilita}
+                onChange={(e) => setForm((p) => ({ ...p, visibilita: e.target.value }))}
+              >
+                <option value="">Non specificato</option>
+                <option value="buona">Buona</option>
+                <option value="sufficiente">Sufficiente</option>
+                <option value="scarsa">Scarsa</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label>Temp. acqua (°C)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={form.temperatura_acqua}
+                onChange={(e) => setForm((p) => ({ ...p, temperatura_acqua: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Temp. aria (°C)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={form.temperatura_aria}
+                onChange={(e) => setForm((p) => ({ ...p, temperatura_aria: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <h3>Attività svolta</h3>
+          <div className="form-row">
+            <div className="form-field">
+              <label>N. Tuffi svolti</label>
+              <input
+                type="number"
+                value={form.numero_tuffi}
+                onChange={(e) => setForm((p) => ({ ...p, numero_tuffi: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Tempo max d'immersione</label>
+              <input
+                placeholder="es. 2:30"
+                value={form.tempo_max_immersione}
+                onChange={(e) => setForm((p) => ({ ...p, tempo_max_immersione: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Min profondità raggiunta (m)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={form.profondita_min_raggiunta}
+                onChange={(e) => setForm((p) => ({ ...p, profondita_min_raggiunta: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Assetto</label>
+              <select
+                value={form.assetto}
+                onChange={(e) => setForm((p) => ({ ...p, assetto: e.target.value }))}
+              >
+                <option value="">Non specificato</option>
+                <option value="costante">Assetto costante</option>
+                <option value="variabile">Assetto variabile</option>
+                <option value="no_limits">No limits</option>
+              </select>
+            </div>
+          </div>
+
+          <h3>Attrezzatura utilizzata</h3>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Giacca muta (mm)</label>
+              <input
+                type="number"
+                value={form.muta_giacca_mm}
+                onChange={(e) => setForm((p) => ({ ...p, muta_giacca_mm: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Pantaloni muta (mm)</label>
+              <input
+                type="number"
+                value={form.muta_pantaloni_mm}
+                onChange={(e) => setForm((p) => ({ ...p, muta_pantaloni_mm: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Bermuda (mm)</label>
+              <input
+                type="number"
+                value={form.muta_bermuda_mm}
+                onChange={(e) => setForm((p) => ({ ...p, muta_bermuda_mm: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Guanti (mm)</label>
+              <input
+                type="number"
+                value={form.guanti_mm}
+                onChange={(e) => setForm((p) => ({ ...p, guanti_mm: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Calzari (mm)</label>
+              <input
+                type="number"
+                value={form.calzari_mm}
+                onChange={(e) => setForm((p) => ({ ...p, calzari_mm: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Zavorra (kg)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={form.zavorra_kg}
+                onChange={(e) => setForm((p) => ({ ...p, zavorra_kg: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Pinne</label>
+              <input
+                value={form.pinne}
+                onChange={(e) => setForm((p) => ({ ...p, pinne: e.target.value }))}
               />
             </div>
           </div>
