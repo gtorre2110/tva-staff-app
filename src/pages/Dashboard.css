@@ -299,12 +299,10 @@
   border-color: var(--line-green);
 }
 
-.checkin-persona-btn.bloccato,
-.checkin-persona-btn:disabled {
-  background: var(--chalk-dim);
-  color: var(--ink-soft);
-  border-color: var(--chalk-dim);
-  cursor: not-allowed;
+.checkin-persona-btn.bloccato {
+  background: #fff;
+  color: var(--warning);
+  border-color: var(--warning);
 }
 
 .checkin-altre {

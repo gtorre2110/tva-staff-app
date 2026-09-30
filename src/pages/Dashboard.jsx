@@ -248,6 +248,13 @@ function CheckInAttivita({ occorrenza, macroNome, onCambia, onAggiornato }) {
     }
   }
 
+  function checkInConEventualeConferma(p, warn) {
+    if (!p.presente && warn) {
+      if (!confirm(`${warn}.\n\nVuoi registrare comunque la presenza?`)) return
+    }
+    toggleCheckIn(p)
+  }
+
   async function toggleCheckIn(p) {
     const nuovoPresente = !p.presente
     const { error: updateError } = await supabase
@@ -363,10 +370,9 @@ function CheckInAttivita({ occorrenza, macroNome, onCambia, onAggiornato }) {
                 </div>
                 <button
                   className={'checkin-persona-btn' + (p.presente ? ' presente' : '') + (bloccato && !p.presente ? ' bloccato' : '')}
-                  disabled={bloccato && !p.presente}
-                  onClick={() => toggleCheckIn(p)}
+                  onClick={() => checkInConEventualeConferma(p, warn)}
                 >
-                  {bloccato && !p.presente ? 'Bloccato' : p.presente ? 'Presente ✓' : 'Check-in'}
+                  {bloccato && !p.presente ? 'Check-in (bloccato)' : p.presente ? 'Presente ✓' : 'Check-in'}
                 </button>
               </article>
             )
