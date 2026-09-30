@@ -9,7 +9,6 @@ const VUOTO = {
   centro_immersione_id: '', centro_immersione_libero: '',
   istruttore_id: '', istruttore_nome_libero: '',
   brevetto_id: '',
-  tipo_autorespiratore: '', miscela_utilizzata: '',
   profondita_programmata: '', profondita_raggiunta: '',
   corso: '', note: '',
   numero_uscita: '', specchio_acqua: '',
@@ -95,8 +94,6 @@ export default function LogbookCliente({ clienteId }) {
       istruttore_id: usaCatalogoIstruttore ? form.istruttore_id : null,
       istruttore_nome_libero: usaCatalogoIstruttore ? null : form.istruttore_nome_libero.trim() || null,
       brevetto_id: form.brevetto_id || null,
-      tipo_autorespiratore: form.tipo_autorespiratore.trim() || null,
-      miscela_utilizzata: form.miscela_utilizzata.trim() || null,
       profondita_programmata: form.profondita_programmata === '' ? null : Number(form.profondita_programmata),
       profondita_raggiunta: form.profondita_raggiunta === '' ? null : Number(form.profondita_raggiunta),
       corso: form.corso.trim() || null,
@@ -306,23 +303,6 @@ export default function LogbookCliente({ clienteId }) {
                 <option key={b.id} value={b.id}>{descrizioneBrevetto(b)}</option>
               ))}
             </select>
-          </div>
-
-          <div className="form-row">
-            <div className="form-field">
-              <label>Tipo di autorespiratore</label>
-              <input
-                value={form.tipo_autorespiratore}
-                onChange={(e) => setForm((p) => ({ ...p, tipo_autorespiratore: e.target.value }))}
-              />
-            </div>
-            <div className="form-field">
-              <label>Miscela utilizzata</label>
-              <input
-                value={form.miscela_utilizzata}
-                onChange={(e) => setForm((p) => ({ ...p, miscela_utilizzata: e.target.value }))}
-              />
-            </div>
           </div>
 
           <div className="form-row">
