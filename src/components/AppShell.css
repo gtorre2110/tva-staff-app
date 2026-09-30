@@ -279,3 +279,10 @@
     font-size: 0.85rem;
   }
 }
+
+/* Beta banner: nella topbar mobile va in linea col logo, non sopra */
+.shell-mobile-topbar .beta-banner {
+  margin-bottom: 0;
+  padding: 3px 8px;
+  font-size: 0.62rem;
+}

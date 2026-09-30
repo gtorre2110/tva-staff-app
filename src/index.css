@@ -46,3 +46,18 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+.beta-banner {
+  background: var(--alert, #b23a3a);
+  color: #fff;
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+

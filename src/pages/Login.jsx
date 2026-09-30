@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
 import CampoPassword from '../components/CampoPassword'
+import BetaBanner from '../components/BetaBanner'
 import './Login.css'
 
 export default function Login() {
@@ -46,6 +47,7 @@ export default function Login() {
           <circle cx="200" cy="260" r="6" fill="#2a333d" />
         </svg>
         <div className="login-hero-content">
+          <BetaBanner />
           <img src={logo} alt="Logo" className="login-hero-logo" />
           <span className="login-hero-kicker">Gestione attività</span>
           <h1>Accesso staff</h1>

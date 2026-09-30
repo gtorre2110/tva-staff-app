@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
+import BetaBanner from './BetaBanner'
 import './AppShell.css'
 
 export default function AppShell({ session, membro }) {
@@ -60,6 +61,7 @@ export default function AppShell({ session, membro }) {
     <div className="shell">
       {/* Barra laterale: visibile da tablet in su */}
       <aside className="shell-sidebar">
+        <BetaBanner />
         <img src={logo} alt="Logo" className="shell-brand" />
         {membro && (
           <p className="shell-utente">
@@ -86,6 +88,7 @@ export default function AppShell({ session, membro }) {
 
       {/* Barra superiore compatta: solo da smartphone */}
       <header className="shell-mobile-topbar">
+        <BetaBanner />
         <img src={logo} alt="Logo" />
         {membro && <span className="shell-mobile-utente">{membro.nome}</span>}
         {!!inSospeso && (
