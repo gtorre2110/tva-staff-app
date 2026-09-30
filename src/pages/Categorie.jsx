@@ -65,6 +65,7 @@ export default function Categorie() {
       .update({
         nome: modifica.nome.trim(),
         categoria_padre_id: modifica.categoria_padre_id || null,
+        data_scadenza: modifica.data_scadenza || null,
       })
       .eq('id', modifica.id)
 
@@ -80,7 +81,13 @@ export default function Categorie() {
   }
 
   function apriModifica(c) {
-    setModifica(leggiBozza(`categoria-${c.id}`) || { ...c, categoria_padre_id: c.categoria_padre_id || '' })
+    setModifica(
+      leggiBozza(`categoria-${c.id}`) || {
+        ...c,
+        categoria_padre_id: c.categoria_padre_id || '',
+        data_scadenza: c.data_scadenza || '',
+      }
+    )
   }
 
   async function elimina(categoria) {
@@ -146,7 +153,12 @@ export default function Categorie() {
         {principali.map((c) => (
           <>
             <li key={c.id}>
-              <span>{c.nome}</span>
+              <span>
+                {c.nome}
+                {c.data_scadenza && (
+                  <span className="field-hint"> — ingressi in scadenza il {new Date(c.data_scadenza).toLocaleDateString('it-IT')}</span>
+                )}
+              </span>
               <span className="catalogo-azioni">
                 <button className="btn-secondary" onClick={() => apriModifica(c)}>
                   Modifica
@@ -205,6 +217,18 @@ export default function Categorie() {
                     ))}
                   </select>
                 )}
+              </div>
+              <div className="form-field">
+                <label>Scadenza ingressi</label>
+                <input
+                  type="date"
+                  value={modifica.data_scadenza || ''}
+                  onChange={(e) => setModifica((p) => ({ ...p, data_scadenza: e.target.value }))}
+                />
+                <span className="field-hint">
+                  Facoltativa. Mostrata accanto a "Ingressi disponibili" solo ai clienti con
+                  questa categoria confermata (pensata per "Allenamenti").
+                </span>
               </div>
 
               <div className="form-actions">

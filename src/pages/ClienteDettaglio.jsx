@@ -9,7 +9,7 @@ import BrevettiCliente from './BrevettiCliente'
 import LogbookCliente from './LogbookCliente'
 import ConfermaModal from '../components/ConfermaModal'
 import FotoCliente from './FotoCliente'
-import { certificatoScaduto, certificatoInScadenza } from '../lib/clienti'
+import { certificatoScaduto, certificatoInScadenza, scadenzaIngressiAllenamenti } from '../lib/clienti'
 import { useIsAssistente } from '../lib/membroContext'
 import './ClienteDettaglio.css'
 
@@ -39,13 +39,17 @@ export default function ClienteDettaglio() {
   const [eliminazione, setEliminazione] = useState(false)
   const [confermaEliminazione, setConfermaEliminazione] = useState(false)
   const [error, setError] = useState(null)
+  const [scadenzaIngressi, setScadenzaIngressi] = useState(null)
 
   useEffect(() => {
     if (isAssistente) {
       navigate('/clienti', { replace: true })
       return
     }
-    if (!nuovo) caricaCliente()
+    if (!nuovo) {
+      caricaCliente()
+      scadenzaIngressiAllenamenti(supabase, id).then(setScadenzaIngressi)
+    }
   }, [id])
 
   if (isAssistente) return null
@@ -233,7 +237,10 @@ export default function ClienteDettaglio() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="ingressi">Ingressi disponibili</label>
+            <label htmlFor="ingressi">
+              Ingressi disponibili
+              {scadenzaIngressi && ` (scadenza: ${new Date(scadenzaIngressi).toLocaleDateString('it-IT')})`}
+            </label>
             <input
               id="ingressi"
               type="number"
