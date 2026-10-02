@@ -20,6 +20,7 @@ const VUOTO = {
   assetto: '',
   muta_giacca_mm: '', muta_pantaloni_mm: '', muta_bermuda_mm: '',
   guanti_mm: '', calzari_mm: '', zavorra_kg: '', pinne: '',
+  usa_computer_orologio: false, usa_coltello_tagliasagole: false,
 }
 
 export default function LogbookCliente({ clienteId }) {
@@ -119,6 +120,8 @@ export default function LogbookCliente({ clienteId }) {
       calzari_mm: form.calzari_mm === '' ? null : Number(form.calzari_mm),
       zavorra_kg: form.zavorra_kg === '' ? null : Number(form.zavorra_kg),
       pinne: form.pinne.trim() || null,
+      usa_computer_orologio: !!form.usa_computer_orologio,
+      usa_coltello_tagliasagole: !!form.usa_coltello_tagliasagole,
     }
 
     const { error: insertError } = await supabase.from('logbook').insert(payload)
@@ -538,6 +541,24 @@ export default function LogbookCliente({ clienteId }) {
                 onChange={(e) => setForm((p) => ({ ...p, pinne: e.target.value }))}
               />
             </div>
+          </div>
+          <div className="form-row form-field-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={form.usa_computer_orologio}
+                onChange={(e) => setForm((p) => ({ ...p, usa_computer_orologio: e.target.checked }))}
+              />
+              Computer/Orologio
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={form.usa_coltello_tagliasagole}
+                onChange={(e) => setForm((p) => ({ ...p, usa_coltello_tagliasagole: e.target.checked }))}
+              />
+              Coltello/Tagliasagole
+            </label>
           </div>
 
           <div className="form-field">
