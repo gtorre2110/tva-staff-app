@@ -180,7 +180,7 @@ function RegistroPreEvento() {
     setLoading(true)
     const { data, error: fetchError } = await supabase
       .from('attivita')
-      .select('id, nome, data, ora_inizio')
+      .select('id, nome, data, ora_inizio, ora_fine')
       .order('data', { ascending: false })
       .limit(100)
     if (fetchError) setError(fetchError.message)
@@ -210,38 +210,65 @@ function RegistroPreEvento() {
     if (clienteIds.length > 0) {
       const { data: brevetti, error: e2 } = await supabase
         .from('brevetti')
-        .select('cliente_id, immagine_url, tipo_brevetto_libero, tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url)')
+        .select(
+          'cliente_id, immagine_url, brevetto_riferimento, didattica_libera, tipo_brevetto_libero, livello_libero, tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url)'
+        )
         .in('cliente_id', clienteIds)
 
       if (e2) {
         setError(e2.message)
       } else {
         for (const b of brevetti || []) {
-          const livello = b.tipi_brevetto?.livello
+          const didattica = b.tipi_brevetto?.didattica || b.didattica_libera
+          const tipo = b.tipi_brevetto?.tipo_brevetto || b.tipo_brevetto_libero
+          const livelloNumerico =
+            typeof b.tipi_brevetto?.livello === 'number' ? b.tipi_brevetto.livello : null
+          const info = {
+            livello: livelloNumerico,
+            descrizione:
+              [didattica, tipo].filter(Boolean).join(' — ') +
+              (livelloNumerico !== null ? ` (liv. ${livelloNumerico})` : ''),
+            immagine_url: b.immagine_url || b.tipi_brevetto?.immagine_url || null,
+          }
+
+          // Il brevetto marcato dal cliente come "principale" vince sempre,
+          // a prescindere dal livello; altrimenti si prende quello col
+          // livello numerico più alto (comportamento precedente).
+          if (b.brevetto_riferimento) {
+            brevettiPerCliente.set(b.cliente_id, { ...info, riferimento: true })
+            continue
+          }
           const attuale = brevettiPerCliente.get(b.cliente_id)
-          if (livello !== null && livello !== undefined && (!attuale || livello > attuale.livello)) {
-            brevettiPerCliente.set(b.cliente_id, {
-              livello,
-              descrizione: `${b.tipi_brevetto.didattica} — ${b.tipi_brevetto.tipo_brevetto} (liv. ${livello})`,
-              immagine_url: b.immagine_url || b.tipi_brevetto?.immagine_url || null,
-            })
+          if (attuale?.riferimento) continue
+          if (info.livello !== null && (!attuale || info.livello > attuale.livello)) {
+            brevettiPerCliente.set(b.cliente_id, info)
           }
         }
       }
     }
 
-    setIscritti(
-      (prenotazioni || []).map((p) => {
-        const brevetto = brevettiPerCliente.get(p.cliente_id)
-        return {
-          cliente_id: p.cliente_id,
-          nome: p.clienti?.nome,
-          cognome: p.clienti?.cognome,
-          brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto con livello numerico',
-          immagine_url: brevetto?.immagine_url || null,
-        }
-      })
-    )
+    const elenco = (prenotazioni || []).map((p) => {
+      const brevetto = brevettiPerCliente.get(p.cliente_id)
+      return {
+        cliente_id: p.cliente_id,
+        nome: p.clienti?.nome,
+        cognome: p.clienti?.cognome,
+        brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto registrato',
+        immagine_url: brevetto?.immagine_url || null,
+        livello: brevetto?.livello ?? null,
+      }
+    })
+
+    // Ordine per brevetto (livello decrescente), a parità per cognome —
+    // stesso criterio del registro post-evento.
+    elenco.sort((a, b) => {
+      const livelloA = a.livello ?? -Infinity
+      const livelloB = b.livello ?? -Infinity
+      if (livelloB !== livelloA) return livelloB - livelloA
+      return (a.cognome || '').localeCompare(b.cognome || '')
+    })
+
+    setIscritti(elenco)
     setLoadingIscritti(false)
   }
 

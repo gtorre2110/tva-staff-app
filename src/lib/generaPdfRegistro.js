@@ -55,7 +55,11 @@ async function caricaImmagine(url) {
   }
 }
 
-function scriviCampo(doc, etichetta, valore, y) {
+// Se il campo manca e non è ancora disponibile (es. un'uscita futura di cui
+// non si conosce ancora l'esito), lascia la riga vuota da compilare a
+// penna invece del placeholder "—": lo chiama chi genera il PDF passando
+// { lasciaInBianco: true }.
+function scriviCampo(doc, etichetta, valore, y, { lasciaInBianco = false } = {}) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   const etichettaTesto = `${etichetta}: `
@@ -63,7 +67,8 @@ function scriviCampo(doc, etichetta, valore, y) {
   const larghezzaEtichetta = doc.getTextWidth(etichettaTesto)
 
   doc.setFont('helvetica', 'normal')
-  const righe = doc.splitTextToSize(valore || '—', LARGHEZZA_UTILE - larghezzaEtichetta)
+  const valoreEffettivo = valore || (lasciaInBianco ? '' : '—')
+  const righe = doc.splitTextToSize(valoreEffettivo, LARGHEZZA_UTILE - larghezzaEtichetta)
   doc.text(righe, MARGINE + larghezzaEtichetta, y)
   return y + Math.max(righe.length, 1) * 5.6 + 2.5
 }
@@ -178,8 +183,25 @@ export async function generaPdfRegistroPreEvento(attivita, iscritti) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
   let y = scriviTitolo(doc, `${attivita.nome || 'Attività'} — ${formattaData(attivita.data)}`)
 
-  y = scriviCampo(doc, 'Orario', formattaOra(attivita.ora_inizio), y)
-  y = scriviCampo(doc, 'Iscritti confermati', String(iscritti.length), y)
+  const orario =
+    attivita.ora_inizio && attivita.ora_fine
+      ? `${formattaOra(attivita.ora_inizio)} – ${formattaOra(attivita.ora_fine)}`
+      : formattaOra(attivita.ora_inizio)
+  const partecipantiTesto = iscritti.map((p) => `${p.cognome} ${p.nome}`).filter(Boolean).join(', ')
+  const brevettiTesto = iscritti.map((p) => p.brevetto_descrizione).filter(Boolean).join(', ')
+
+  // Stessi campi del registro post-evento: per un'uscita non ancora
+  // svolta, quelli che si conoscono solo a consuntivo (centro, istruttore,
+  // profondità, autorespiratore, miscela) restano in bianco da compilare a
+  // penna, non nascosti né sostituiti da un placeholder.
+  y = scriviCampo(doc, 'Orario', orario, y)
+  y = scriviCampo(doc, 'Centro di immersione', null, y, { lasciaInBianco: true })
+  y = scriviCampo(doc, 'Istruttore', null, y, { lasciaInBianco: true })
+  y = scriviCampo(doc, 'Partecipanti', partecipantiTesto, y)
+  y = scriviCampo(doc, 'Brevetti', brevettiTesto, y)
+  y = scriviCampo(doc, 'Profondità massima raggiunta', null, y, { lasciaInBianco: true })
+  y = scriviCampo(doc, 'Autorespiratore/i', null, y, { lasciaInBianco: true })
+  y = scriviCampo(doc, 'Miscela/e', null, y, { lasciaInBianco: true })
 
   y += 5
   doc.setDrawColor(190)
