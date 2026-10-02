@@ -1,19 +1,26 @@
-// Genera i PDF del registro immersioni (Legge 70/2006), A4, con titolo e
-// piè di pagina con numero progressivo:
-//  - generaPdfRegistroUscita: una singola uscita del Post-evento (dati già
-//    esportati in CSV + una scheda per partecipante con la sua immagine)
-//  - generaPdfRegistroPreEvento: gli iscritti a un'attività, col loro
-//    brevetto più alto e relativa immagine
+// Genera i PDF del registro immersioni (Legge 70/2006), A4 orizzontale:
+//  - una tabella riepilogativa in alto con tutti i campi previsti dalla
+//    normativa (una riga: i partecipanti e i relativi brevetti, uno per
+//    riga, dentro le rispettive celle)
+//  - sotto, una griglia con l'immagine del brevetto di ciascun
+//    partecipante (nome e cognome ripetuti sopra l'immagine)
+//
+// generaPdfRegistroUscita: una singola uscita del Post-evento
+// generaPdfRegistroPreEvento: gli iscritti a un'attività futura (i campi
+//   non ancora noti restano in bianco, da compilare a penna)
 
 import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { formattaData, formattaOra } from './attivita'
 
-const MARGINE = 16
-const LARGHEZZA_PAGINA = 210
-const ALTEZZA_PAGINA = 297
+const MARGINE = 12
+const LARGHEZZA_PAGINA = 297
+const ALTEZZA_PAGINA = 210
 const LARGHEZZA_UTILE = LARGHEZZA_PAGINA - 2 * MARGINE
-const LARGHEZZA_IMMAGINE = 55
-const ALTEZZA_IMMAGINE = 55
+
+const LARGHEZZA_IMMAGINE = 70
+const ALTEZZA_IMMAGINE = 45
+const PER_RIGA = 3
 
 function formatoDa(dataUrl) {
   const match = /^data:image\/(\w+);/.exec(dataUrl || '')
@@ -55,33 +62,12 @@ async function caricaImmagine(url) {
   }
 }
 
-// Se il campo manca e non è ancora disponibile (es. un'uscita futura di cui
-// non si conosce ancora l'esito), lascia la riga vuota da compilare a
-// penna invece del placeholder "—": lo chiama chi genera il PDF passando
-// { lasciaInBianco: true }.
-function scriviCampo(doc, etichetta, valore, y, { lasciaInBianco = false } = {}) {
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  const etichettaTesto = `${etichetta}: `
-  doc.text(etichettaTesto, MARGINE, y)
-  const larghezzaEtichetta = doc.getTextWidth(etichettaTesto)
-
-  doc.setFont('helvetica', 'normal')
-  const valoreEffettivo = valore || (lasciaInBianco ? '' : '—')
-  const righe = doc.splitTextToSize(valoreEffettivo, LARGHEZZA_UTILE - larghezzaEtichetta)
-  doc.text(righe, MARGINE + larghezzaEtichetta, y)
-  return y + Math.max(righe.length, 1) * 5.6 + 2.5
-}
-
 function scriviTitolo(doc, titolo) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
   const righeTitolo = doc.splitTextToSize(titolo, LARGHEZZA_UTILE)
-  doc.text(righeTitolo, MARGINE, MARGINE)
-  let y = MARGINE + righeTitolo.length * 8 + 4
-  doc.setDrawColor(190)
-  doc.line(MARGINE, y, LARGHEZZA_PAGINA - MARGINE, y)
-  return y + 9
+  doc.text(righeTitolo, MARGINE, MARGINE + 4)
+  return MARGINE + 4 + righeTitolo.length * 8 + 4
 }
 
 function scriviIntestazioneSezione(doc, testo, y) {
@@ -91,44 +77,99 @@ function scriviIntestazioneSezione(doc, testo, y) {
   return y + 9
 }
 
-// Disegna la scheda di un partecipante (immagine a sinistra — o lo spazio
-// vuoto se non disponibile, per mantenere l'allineamento — nome/cognome e
-// brevetto a destra), passando pagina quando non c'è più posto. Restituisce
-// la nuova y.
-async function scriviSchedaPartecipante(doc, p, y) {
-  const altezzaBlocco = ALTEZZA_IMMAGINE + 14
-  if (y + altezzaBlocco > ALTEZZA_PAGINA - MARGINE) {
-    doc.addPage()
-    y = MARGINE
+// Disegna la tabella riepilogativa con tutti i campi previsti dalla
+// normativa. `partecipanti` e `istruttore` arrivano come array di righe
+// testuali già pronte (una per riga nella cella), così "Partecipanti" e
+// "Brevetti" restano allineati per indice.
+function scriviTabellaRiepilogo(doc, y, campi) {
+  const { data, oraInizio, oraFine, localita, centro, istruttoreNome, istruttoreInfo, righePartecipanti, righeBrevetti, profondita, autorespiratori, miscele } = campi
+
+  autoTable(doc, {
+    startY: y,
+    margin: { left: MARGINE, right: MARGINE },
+    theme: 'grid',
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 1.8, valign: 'top', lineColor: 190 },
+    headStyles: { fillColor: [235, 235, 235], textColor: 20, fontStyle: 'bold' },
+    head: [
+      [
+        'Data',
+        'Orario inizio',
+        'Orario fine',
+        'Località',
+        'Centro di immersione',
+        'Istruttore',
+        'Istruttore (didattica — n. brevetto)',
+        'Partecipanti',
+        'Brevetti',
+        'Profondità massima (m)',
+        'Autorespiratore/i',
+        'Miscela/e',
+      ],
+    ],
+    body: [
+      [
+        data || '',
+        oraInizio || '',
+        oraFine || '',
+        localita || '',
+        centro || '',
+        istruttoreNome || '',
+        istruttoreInfo || '',
+        righePartecipanti.join('\n') || '',
+        righeBrevetti.join('\n') || '',
+        profondita || '',
+        autorespiratori || '',
+        miscele || '',
+      ],
+    ],
+  })
+
+  return doc.lastAutoTable.finalY + 10
+}
+
+// Disegna la griglia con l'immagine del brevetto di ogni partecipante
+// (nome e cognome ripetuti sopra), passando pagina quando serve.
+async function scrivigrigliaBrevetti(doc, partecipanti, y) {
+  const gap = 6
+  const larghezzaCella = (LARGHEZZA_UTILE - gap * (PER_RIGA - 1)) / PER_RIGA
+  const altezzaCella = 7 + ALTEZZA_IMMAGINE + 6
+
+  for (let indice = 0; indice < partecipanti.length; indice++) {
+    const p = partecipanti[indice]
+    const colonna = indice % PER_RIGA
+
+    if (colonna === 0 && y + altezzaCella > ALTEZZA_PAGINA - MARGINE) {
+      doc.addPage('a4', 'landscape')
+      y = MARGINE
+    }
+
+    const x = MARGINE + colonna * (larghezzaCella + gap)
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(11)
+    doc.text(`${p.cognome || ''} ${p.nome || ''}`.trim(), x, y + 5)
+
+    const immagine = await caricaImmagine(p.immagine_url)
+    const yImgBox = y + 9
+
+    if (immagine) {
+      const scala = Math.min(larghezzaCella / immagine.larghezza, ALTEZZA_IMMAGINE / immagine.altezza)
+      const larghezzaFinale = immagine.larghezza * scala
+      const altezzaFinale = immagine.altezza * scala
+      const xImg = x + (larghezzaCella - larghezzaFinale) / 2
+      const yImg = yImgBox + (ALTEZZA_IMMAGINE - altezzaFinale) / 2
+      doc.addImage(immagine.dataUrl, formatoDa(immagine.dataUrl), xImg, yImg, larghezzaFinale, altezzaFinale)
+    } else {
+      // Nessuna immagine disponibile: spazio vuoto, nessun riquadro né
+      // scritta, per non appesantire la pagina.
+    }
+
+    if (colonna === PER_RIGA - 1 || indice === partecipanti.length - 1) {
+      y += altezzaCella
+    }
   }
 
-  const immagine = await caricaImmagine(p.immagine_url)
-
-  if (immagine) {
-    const scala = Math.min(LARGHEZZA_IMMAGINE / immagine.larghezza, ALTEZZA_IMMAGINE / immagine.altezza)
-    const larghezzaFinale = immagine.larghezza * scala
-    const altezzaFinale = immagine.altezza * scala
-    const xImg = MARGINE + (LARGHEZZA_IMMAGINE - larghezzaFinale) / 2
-    const yImg = y + (ALTEZZA_IMMAGINE - altezzaFinale) / 2
-    doc.addImage(immagine.dataUrl, formatoDa(immagine.dataUrl), xImg, yImg, larghezzaFinale, altezzaFinale)
-  }
-  // Se l'immagine manca, lo spazio (LARGHEZZA_IMMAGINE × ALTEZZA_IMMAGINE)
-  // resta semplicemente vuoto: nessun riquadro, nessuna scritta, così
-  // l'allineamento con le schede vicine non cambia.
-
-  const xTesto = MARGINE + LARGHEZZA_IMMAGINE + 8
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(12)
-  doc.text(`${p.cognome} ${p.nome}`, xTesto, y + 8)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
-  const righeBrevetto = doc.splitTextToSize(
-    p.brevetto_descrizione || 'Nessun brevetto registrato',
-    LARGHEZZA_UTILE - LARGHEZZA_IMMAGINE - 8
-  )
-  doc.text(righeBrevetto, xTesto, y + 15)
-
-  return y + altezzaBlocco
+  return y
 }
 
 function aggiungiPiePagina(doc) {
@@ -138,7 +179,7 @@ function aggiungiPiePagina(doc) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(9)
     doc.setTextColor(130)
-    doc.text(`Pag. ${pagina} di ${totalePagine}`, LARGHEZZA_PAGINA / 2, ALTEZZA_PAGINA - 10, { align: 'center' })
+    doc.text(`Pag. ${pagina} di ${totalePagine}`, LARGHEZZA_PAGINA / 2, ALTEZZA_PAGINA - 8, { align: 'center' })
     doc.setTextColor(0)
   }
 }
@@ -147,71 +188,74 @@ function nomeFileSicuro(testo) {
   return (testo || 'registro').toLowerCase().replace(/[^a-z0-9]+/g, '-')
 }
 
-export async function generaPdfRegistroUscita(riga, partecipanti) {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+// Cerca nel catalogo istruttori la didattica e il numero di brevetto per un
+// nome già risolto (come quello mostrato nel registro). Se l'istruttore è
+// stato scritto a mano (non in catalogo) non si trova nulla: il campo
+// resta vuoto invece di bloccare l'esportazione.
+export async function cercaInfoIstruttore(supabase, nomeIstruttore) {
+  if (!nomeIstruttore) return null
+  const { data } = await supabase
+    .from('istruttori')
+    .select('didattica, numero_brevetto_istruttore')
+    .eq('nome', nomeIstruttore)
+    .maybeSingle()
+  return data || null
+}
+
+function testoInfoIstruttore(info) {
+  if (!info) return ''
+  return [info.didattica, info.numero_brevetto_istruttore ? `n. ${info.numero_brevetto_istruttore}` : null]
+    .filter(Boolean)
+    .join(' — ')
+}
+
+export async function generaPdfRegistroUscita(riga, partecipanti, istruttoreInfo) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' })
   let y = scriviTitolo(doc, `${riga.localita || 'Uscita'} — ${formattaData(riga.data)}`)
 
-  y = scriviCampo(doc, 'Orario', `${formattaOra(riga.ora_inizio)} – ${formattaOra(riga.ora_fine)}`, y)
-  y = scriviCampo(doc, 'Centro di immersione', riga.centro_immersione, y)
-  y = scriviCampo(doc, 'Istruttore', riga.istruttore, y)
-  y = scriviCampo(doc, 'Partecipanti', riga.partecipanti, y)
-  y = scriviCampo(doc, 'Brevetti', riga.brevetti, y)
-  y = scriviCampo(
-    doc,
-    'Profondità massima raggiunta',
-    riga.profondita_massima_raggiunta ? `${riga.profondita_massima_raggiunta} m` : null,
-    y
-  )
-  y = scriviCampo(doc, 'Autorespiratore/i', riga.autorespiratori, y)
-  y = scriviCampo(doc, 'Miscela/e', riga.miscele, y)
+  y = scriviTabellaRiepilogo(doc, y, {
+    data: formattaData(riga.data),
+    oraInizio: formattaOra(riga.ora_inizio),
+    oraFine: formattaOra(riga.ora_fine),
+    localita: riga.localita,
+    centro: riga.centro_immersione,
+    istruttoreNome: riga.istruttore,
+    istruttoreInfo: testoInfoIstruttore(istruttoreInfo),
+    righePartecipanti: partecipanti.map((p) => `${p.cognome || ''} ${p.nome || ''}`.trim()),
+    righeBrevetti: partecipanti.map((p) => p.brevetto_descrizione || '—'),
+    profondita: riga.profondita_massima_raggiunta ? `${riga.profondita_massima_raggiunta}` : '',
+    autorespiratori: riga.autorespiratori,
+    miscele: riga.miscele,
+  })
 
-  y += 5
-  doc.setDrawColor(190)
-  doc.line(MARGINE, y, LARGHEZZA_PAGINA - MARGINE, y)
-  y += 10
-  y = scriviIntestazioneSezione(doc, 'Partecipanti e brevetti', y)
-
-  for (const p of partecipanti) {
-    y = await scriviSchedaPartecipante(doc, p, y)
-  }
+  y = scriviIntestazioneSezione(doc, 'Brevetti dei partecipanti', y)
+  await scrivigrigliaBrevetti(doc, partecipanti, y)
 
   aggiungiPiePagina(doc)
   doc.save(`registro-${nomeFileSicuro(riga.localita)}-${riga.data}.pdf`)
 }
 
 export async function generaPdfRegistroPreEvento(attivita, iscritti) {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' })
   let y = scriviTitolo(doc, `${attivita.nome || 'Attività'} — ${formattaData(attivita.data)}`)
 
-  const orario =
-    attivita.ora_inizio && attivita.ora_fine
-      ? `${formattaOra(attivita.ora_inizio)} – ${formattaOra(attivita.ora_fine)}`
-      : formattaOra(attivita.ora_inizio)
-  const partecipantiTesto = iscritti.map((p) => `${p.cognome} ${p.nome}`).filter(Boolean).join(', ')
-  const brevettiTesto = iscritti.map((p) => p.brevetto_descrizione).filter(Boolean).join(', ')
+  y = scriviTabellaRiepilogo(doc, y, {
+    data: formattaData(attivita.data),
+    oraInizio: formattaOra(attivita.ora_inizio),
+    oraFine: attivita.ora_fine ? formattaOra(attivita.ora_fine) : '',
+    localita: '',
+    centro: '',
+    istruttoreNome: '',
+    istruttoreInfo: '',
+    righePartecipanti: iscritti.map((p) => `${p.cognome || ''} ${p.nome || ''}`.trim()),
+    righeBrevetti: iscritti.map((p) => p.brevetto_descrizione || '—'),
+    profondita: '',
+    autorespiratori: '',
+    miscele: '',
+  })
 
-  // Stessi campi del registro post-evento: per un'uscita non ancora
-  // svolta, quelli che si conoscono solo a consuntivo (centro, istruttore,
-  // profondità, autorespiratore, miscela) restano in bianco da compilare a
-  // penna, non nascosti né sostituiti da un placeholder.
-  y = scriviCampo(doc, 'Orario', orario, y)
-  y = scriviCampo(doc, 'Centro di immersione', null, y, { lasciaInBianco: true })
-  y = scriviCampo(doc, 'Istruttore', null, y, { lasciaInBianco: true })
-  y = scriviCampo(doc, 'Partecipanti', partecipantiTesto, y)
-  y = scriviCampo(doc, 'Brevetti', brevettiTesto, y)
-  y = scriviCampo(doc, 'Profondità massima raggiunta', null, y, { lasciaInBianco: true })
-  y = scriviCampo(doc, 'Autorespiratore/i', null, y, { lasciaInBianco: true })
-  y = scriviCampo(doc, 'Miscela/e', null, y, { lasciaInBianco: true })
-
-  y += 5
-  doc.setDrawColor(190)
-  doc.line(MARGINE, y, LARGHEZZA_PAGINA - MARGINE, y)
-  y += 10
-  y = scriviIntestazioneSezione(doc, 'Partecipanti e brevetti', y)
-
-  for (const p of iscritti) {
-    y = await scriviSchedaPartecipante(doc, p, y)
-  }
+  y = scriviIntestazioneSezione(doc, 'Brevetti dei partecipanti', y)
+  await scrivigrigliaBrevetti(doc, iscritti, y)
 
   aggiungiPiePagina(doc)
   doc.save(`registro-pre-evento-${nomeFileSicuro(attivita.nome)}-${attivita.data}.pdf`)

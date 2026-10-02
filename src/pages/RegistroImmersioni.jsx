@@ -3,9 +3,38 @@ import { supabase } from '../supabaseClient'
 import { scaricaCSV } from '../lib/csv'
 import BottoneDrive from '../components/BottoneDrive'
 import { formattaData, formattaOra } from '../lib/attivita'
-import { generaPdfRegistroUscita, generaPdfRegistroPreEvento } from '../lib/generaPdfRegistro'
+import { generaPdfRegistroUscita, generaPdfRegistroPreEvento, cercaInfoIstruttore } from '../lib/generaPdfRegistro'
+import { selezionaBrevettoPrincipale } from '../lib/brevetti'
 import './Cataloghi.css'
 import './RegistroImmersioni.css'
+
+const SELEZIONE_BREVETTI =
+  'cliente_id, immagine_url, brevetto_riferimento, didattica_libera, tipo_brevetto_libero, livello_libero, tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url)'
+
+// Per una lista di cliente_id, restituisce una Map cliente_id -> brevetto
+// "principale" (vedi selezionaBrevettoPrincipale): usata sia dal registro
+// pre-evento sia dal post-evento, così il criterio è identico nei due.
+async function caricaBrevettoPrincipalePerClienti(clienteIds) {
+  const mappa = new Map()
+  if (clienteIds.length === 0) return mappa
+
+  const { data: brevetti, error } = await supabase
+    .from('brevetti')
+    .select(SELEZIONE_BREVETTI)
+    .in('cliente_id', clienteIds)
+
+  if (error) throw error
+
+  const perCliente = new Map()
+  for (const b of brevetti || []) {
+    if (!perCliente.has(b.cliente_id)) perCliente.set(b.cliente_id, [])
+    perCliente.get(b.cliente_id).push(b)
+  }
+  for (const [clienteId, lista] of perCliente) {
+    mappa.set(clienteId, selezionaBrevettoPrincipale(lista))
+  }
+  return mappa
+}
 
 const SCHEDE = [
   { id: 'pre', label: 'Pre-evento (dalle prenotazioni)' },
@@ -86,7 +115,7 @@ function RegistroPostEvento() {
     setGenerandoPdf(i)
     setError(null)
     try {
-      const { data: partecipanti, error: rpcError } = await supabase.rpc('registro_immersioni_partecipanti', {
+      const { data: partecipantiGrezzi, error: rpcError } = await supabase.rpc('registro_immersioni_partecipanti', {
         p_data: r.data,
         p_ora_inizio: r.ora_inizio,
         p_ora_fine: r.ora_fine,
@@ -95,7 +124,31 @@ function RegistroPostEvento() {
         p_istruttore: r.istruttore,
       })
       if (rpcError) throw rpcError
-      await generaPdfRegistroUscita(r, partecipanti || [])
+
+      const clienteIds = (partecipantiGrezzi || []).map((p) => p.cliente_id)
+      const brevettoPerCliente = await caricaBrevettoPrincipalePerClienti(clienteIds)
+
+      const partecipanti = (partecipantiGrezzi || []).map((p) => {
+        const brevetto = brevettoPerCliente.get(p.cliente_id)
+        return {
+          cliente_id: p.cliente_id,
+          nome: p.nome,
+          cognome: p.cognome,
+          brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto registrato',
+          immagine_url: brevetto?.immagine_url || null,
+          livello: brevetto?.livello ?? null,
+        }
+      })
+      partecipanti.sort((a, b) => {
+        const livelloA = a.livello ?? -Infinity
+        const livelloB = b.livello ?? -Infinity
+        if (livelloB !== livelloA) return livelloB - livelloA
+        return (a.cognome || '').localeCompare(b.cognome || '')
+      })
+
+      const istruttoreInfo = await cercaInfoIstruttore(supabase, r.istruttore)
+
+      await generaPdfRegistroUscita(r, partecipanti, istruttoreInfo)
     } catch (err) {
       setError('Errore nella generazione del PDF: ' + err.message)
     }
@@ -208,42 +261,10 @@ function RegistroPreEvento() {
     let brevettiPerCliente = new Map()
 
     if (clienteIds.length > 0) {
-      const { data: brevetti, error: e2 } = await supabase
-        .from('brevetti')
-        .select(
-          'cliente_id, immagine_url, brevetto_riferimento, didattica_libera, tipo_brevetto_libero, livello_libero, tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url)'
-        )
-        .in('cliente_id', clienteIds)
-
-      if (e2) {
-        setError(e2.message)
-      } else {
-        for (const b of brevetti || []) {
-          const didattica = b.tipi_brevetto?.didattica || b.didattica_libera
-          const tipo = b.tipi_brevetto?.tipo_brevetto || b.tipo_brevetto_libero
-          const livelloNumerico =
-            typeof b.tipi_brevetto?.livello === 'number' ? b.tipi_brevetto.livello : null
-          const info = {
-            livello: livelloNumerico,
-            descrizione:
-              [didattica, tipo].filter(Boolean).join(' — ') +
-              (livelloNumerico !== null ? ` (liv. ${livelloNumerico})` : ''),
-            immagine_url: b.immagine_url || b.tipi_brevetto?.immagine_url || null,
-          }
-
-          // Il brevetto marcato dal cliente come "principale" vince sempre,
-          // a prescindere dal livello; altrimenti si prende quello col
-          // livello numerico più alto (comportamento precedente).
-          if (b.brevetto_riferimento) {
-            brevettiPerCliente.set(b.cliente_id, { ...info, riferimento: true })
-            continue
-          }
-          const attuale = brevettiPerCliente.get(b.cliente_id)
-          if (attuale?.riferimento) continue
-          if (info.livello !== null && (!attuale || info.livello > attuale.livello)) {
-            brevettiPerCliente.set(b.cliente_id, info)
-          }
-        }
+      try {
+        brevettiPerCliente = await caricaBrevettoPrincipalePerClienti(clienteIds)
+      } catch (err) {
+        setError(err.message)
       }
     }
 
