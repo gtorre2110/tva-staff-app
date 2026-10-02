@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useBozza } from '../lib/useBozza'
 import { formattaData } from '../lib/attivita'
+import { useMembro } from '../lib/membroContext'
 
 const VUOTO = {
   data: '', ora_inizio: '', ora_fine: '',
@@ -24,6 +25,7 @@ const VUOTO = {
 }
 
 export default function LogbookCliente({ clienteId }) {
+  const membro = useMembro()
   const [voci, setVoci] = useState([])
   const [istruttori, setIstruttori] = useState([])
   const [localita, setLocalita] = useState([])
@@ -134,10 +136,26 @@ export default function LogbookCliente({ clienteId }) {
     }
   }
 
+  function puoTogliereConferma(v) {
+    if (membro?.ruolo === 'amministratore') return true
+    return !!v.confermato_da_membro_id && v.confermato_da_membro_id === membro?.id
+  }
+
   async function toggleConferma(v) {
+    if (v.confermato_da_istruttore && !puoTogliereConferma(v)) {
+      setError(
+        "Solo l'istruttore che ha confermato questa voce o un amministratore può togliere la conferma."
+      )
+      return
+    }
+    setError(null)
+    const nuovaConferma = !v.confermato_da_istruttore
     const { error: updateError } = await supabase
       .from('logbook')
-      .update({ confermato_da_istruttore: !v.confermato_da_istruttore })
+      .update({
+        confermato_da_istruttore: nuovaConferma,
+        confermato_da_membro_id: nuovaConferma ? membro?.id : null,
+      })
       .eq('id', v.id)
     if (updateError) setError(updateError.message)
     else carica()
@@ -168,7 +186,11 @@ export default function LogbookCliente({ clienteId }) {
                   type="checkbox"
                   checked={v.confermato_da_istruttore}
                   onChange={() => toggleConferma(v)}
-                  title="Confermata dall'istruttore"
+                  title={
+                    v.confermato_da_istruttore && !puoTogliereConferma(v)
+                      ? "Confermata — solo chi l'ha confermata o un amministratore può togliere la conferma"
+                      : "Confermata dall'istruttore"
+                  }
                 />
               </label>
               <span className="prenotazione-nome">

@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
-import { certificatoScaduto, certificatoInScadenza, formattaData } from '../lib/clienti'
+import {
+  certificatoScaduto,
+  certificatoInScadenza,
+  scadenzaPassata,
+  scadenzaInArrivo,
+  formattaData,
+} from '../lib/clienti'
 import { useIsAssistente } from '../lib/membroContext'
 import './Clienti.css'
 
@@ -113,6 +119,50 @@ export default function Clienti() {
                   {!scaduto && inScadenza && ' · in scadenza'}
                 </span>
               </div>
+
+              {cliente.dan_scadenza && (
+                <div className="cliente-card-row">
+                  <span className="cliente-card-label">DAN</span>
+                  <span
+                    className={
+                      'cliente-card-value cert-pill' +
+                      (scadenzaPassata(cliente.dan_scadenza)
+                        ? ' cert-scaduto'
+                        : scadenzaInArrivo(cliente.dan_scadenza)
+                        ? ' cert-in-scadenza'
+                        : '')
+                    }
+                  >
+                    {formattaData(cliente.dan_scadenza)}
+                    {scadenzaPassata(cliente.dan_scadenza) && ' · scaduto'}
+                    {!scadenzaPassata(cliente.dan_scadenza) &&
+                      scadenzaInArrivo(cliente.dan_scadenza) &&
+                      ' · in scadenza'}
+                  </span>
+                </div>
+              )}
+
+              {cliente.fipsas_scadenza && (
+                <div className="cliente-card-row">
+                  <span className="cliente-card-label">FIPSAS</span>
+                  <span
+                    className={
+                      'cliente-card-value cert-pill' +
+                      (scadenzaPassata(cliente.fipsas_scadenza)
+                        ? ' cert-scaduto'
+                        : scadenzaInArrivo(cliente.fipsas_scadenza)
+                        ? ' cert-in-scadenza'
+                        : '')
+                    }
+                  >
+                    {formattaData(cliente.fipsas_scadenza)}
+                    {scadenzaPassata(cliente.fipsas_scadenza) && ' · scaduto'}
+                    {!scadenzaPassata(cliente.fipsas_scadenza) &&
+                      scadenzaInArrivo(cliente.fipsas_scadenza) &&
+                      ' · in scadenza'}
+                  </span>
+                </div>
+              )}
 
               {(cliente.telefono || cliente.email) && (
                 <div className="cliente-card-contact">
