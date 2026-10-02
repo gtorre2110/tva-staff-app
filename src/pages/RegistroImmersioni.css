@@ -41,6 +41,13 @@
   color: var(--ink-soft);
 }
 
+.registro-riga-pdf {
+  margin-top: 0.6rem;
+  align-self: flex-start;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.7rem;
+}
+
 .registro-riga-dettagli p {
   margin: 0.2rem 0;
   font-size: 0.88rem;

@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { scaricaCSV } from '../lib/csv'
 import BottoneDrive from '../components/BottoneDrive'
 import { formattaData, formattaOra } from '../lib/attivita'
+import { generaPdfRegistroUscita } from '../lib/generaPdfRegistro'
 import './Cataloghi.css'
 import './RegistroImmersioni.css'
 
@@ -45,6 +46,7 @@ function RegistroPostEvento() {
   const [righe, setRighe] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [generandoPdf, setGenerandoPdf] = useState(null)
 
   useEffect(() => {
     carica()
@@ -80,6 +82,26 @@ function RegistroPostEvento() {
     scaricaCSV('registro-immersioni-post-evento.csv', colonneCSV, righe)
   }
 
+  async function esportaPdf(r, i) {
+    setGenerandoPdf(i)
+    setError(null)
+    try {
+      const { data: partecipanti, error: rpcError } = await supabase.rpc('registro_immersioni_partecipanti', {
+        p_data: r.data,
+        p_ora_inizio: r.ora_inizio,
+        p_ora_fine: r.ora_fine,
+        p_localita: r.localita,
+        p_centro: r.centro_immersione,
+        p_istruttore: r.istruttore,
+      })
+      if (rpcError) throw rpcError
+      await generaPdfRegistroUscita(r, partecipanti || [])
+    } catch (err) {
+      setError('Errore nella generazione del PDF: ' + err.message)
+    }
+    setGenerandoPdf(null)
+  }
+
   return (
     <div>
       <div className="catalogo-sezione-header">
@@ -107,6 +129,13 @@ function RegistroPostEvento() {
             <div className="registro-riga-data">
               <strong>{formattaData(r.data)}</strong>
               <span>{formattaOra(r.ora_inizio)}–{formattaOra(r.ora_fine)}</span>
+              <button
+                className="btn-secondary registro-riga-pdf"
+                onClick={() => esportaPdf(r, i)}
+                disabled={generandoPdf === i}
+              >
+                {generandoPdf === i ? 'Preparo il PDF…' : 'Esporta PDF'}
+              </button>
             </div>
             <div className="registro-riga-dettagli">
               <p><strong>Partecipanti:</strong> {r.partecipanti || '—'}</p>
