@@ -47,6 +47,11 @@ export default function Aiuto() {
       </section>
 
       <section>
+        <h2>Info</h2>
+        <p>Documenti informativi mostrati ai clienti nella loro pagina "Info" (es. legge del mare, attrezzatura richiesta, regole di sicurezza). Per ciascuno puoi scrivere il testo direttamente qui (viene generato anche un PDF scaricabile) oppure caricare un PDF già pronto. Le freccette ordinano l'elenco, "Nascondi"/"Pubblica" decide cosa è visibile ai clienti.</p>
+      </section>
+
+      <section>
         <h2>Staff</h2>
         <p>Visibile solo agli amministratori. Approva le richieste di accesso, disattiva o elimina membri dello staff. Gli amministratori si creano solo da database, mai da qui.</p>
       </section>

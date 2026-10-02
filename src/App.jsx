@@ -19,6 +19,7 @@ import CodiciInvito from './pages/CodiciInvito'
 import RegistroImmersioni from './pages/RegistroImmersioni'
 import DaFare from './pages/DaFare'
 import Aiuto from './pages/Aiuto'
+import Info from './pages/Info'
 import Staff from './pages/Staff'
 import LogModifiche from './pages/LogModifiche'
 import { MembroContext } from './lib/membroContext'
@@ -101,6 +102,7 @@ export default function App() {
             <Route path="/registro-immersioni" element={<RegistroImmersioni />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/da-fare" element={<DaFare membro={membro} />} />
+            <Route path="/info" element={<Info />} />
             <Route path="/aiuto" element={<Aiuto />} />
             {membro.ruolo === 'amministratore' && <Route path="/staff" element={<Staff />} />}
             {membro.ruolo === 'amministratore' && <Route path="/log-modifiche" element={<LogModifiche />} />}

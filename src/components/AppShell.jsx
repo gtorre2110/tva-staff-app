@@ -49,6 +49,7 @@ export default function AppShell({ session, membro }) {
     { to: '/registro-immersioni', label: 'Registro immersioni' },
     { to: '/dashboard', label: 'Check-in' },
     { to: '/da-fare', label: 'Da fare', badge: inSospeso },
+    { to: '/info', label: 'Info' },
     { to: '/aiuto', label: 'Aiuto' },
   ]
 
