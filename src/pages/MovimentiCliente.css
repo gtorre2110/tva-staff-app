@@ -125,12 +125,13 @@
 .logbook-voce-conferma {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 0.5rem;
 }
 
 .logbook-voce-conferma .badge {
-  white-space: normal;
+  white-space: nowrap;
   line-height: 1.3;
   border-radius: 8px;
   text-align: center;
