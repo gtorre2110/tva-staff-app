@@ -53,7 +53,7 @@ export default function LogbookCliente({ clienteId }) {
     ] = await Promise.all([
       supabase
         .from('logbook')
-        .select('*, istruttori(nome), localita_immersione(nome), centri_immersione(nome), brevetti(numero_brevetto, tipi_brevetto(didattica, tipo_brevetto), tipo_brevetto_libero, didattica_libera)')
+        .select('*, istruttori(nome), localita_immersione(nome), centri_immersione(nome), brevetti(numero_brevetto, tipi_brevetto(didattica, tipo_brevetto), tipo_brevetto_libero, didattica_libera), confermato_da:membri_staff!confermato_da_membro_id(nome, cognome)')
         .eq('cliente_id', clienteId)
         .order('data', { ascending: false }),
       supabase.from('istruttori').select('*').order('nome'),
@@ -178,37 +178,63 @@ export default function LogbookCliente({ clienteId }) {
       ) : voci.length === 0 ? (
         <p className="modelli-hint">Nessuna voce registrata.</p>
       ) : (
-        <ul className="prenotazioni-list">
-          {voci.map((v) => (
-            <li key={v.id}>
-              <label className="prenotazione-checkin">
-                <input
-                  type="checkbox"
-                  checked={v.confermato_da_istruttore}
-                  onChange={() => toggleConferma(v)}
-                  title={
-                    v.confermato_da_istruttore && !puoTogliereConferma(v)
-                      ? "Confermata — solo chi l'ha confermata o un amministratore può togliere la conferma"
-                      : "Confermata dall'istruttore"
-                  }
-                />
-              </label>
-              <span className="prenotazione-nome">
-                {formattaData(v.data)}
-                {(v.ora_inizio) ? ` ${v.ora_inizio.slice(0, 5)}` : ''}
-                {(v.localita_immersione?.nome || v.luogo) ? ` · ${v.localita_immersione?.nome || v.luogo}` : ''}
-                {(v.centri_immersione?.nome || v.centro_immersione_libero) ? ` · ${v.centri_immersione?.nome || v.centro_immersione_libero}` : ''}
-                {(v.istruttori?.nome || v.istruttore_nome_libero) &&
-                  ` · ${v.istruttori?.nome || v.istruttore_nome_libero}`}
-                {v.brevetti ? ` · ${descrizioneBrevetto(v.brevetti)}` : ''}
-                {v.profondita_raggiunta ? ` · ${v.profondita_raggiunta}m` : ''}
-                {v.corso ? ` · ${v.corso}` : ''}
-              </span>
-              <button className="btn-secondary" onClick={() => elimina(v)}>
-                Elimina
-              </button>
-            </li>
-          ))}
+        <ul className="prenotazioni-list logbook-voci-list">
+          {voci.map((v) => {
+            const puoTogliere = puoTogliereConferma(v)
+            const nomeConferma = v.confermato_da
+              ? `${v.confermato_da.nome} ${v.confermato_da.cognome}`
+              : null
+            return (
+              <li key={v.id} className="logbook-voce">
+                <div className="logbook-voce-riga">
+                  <span className="prenotazione-nome">
+                    {formattaData(v.data)}
+                    {(v.ora_inizio) ? ` ${v.ora_inizio.slice(0, 5)}` : ''}
+                    {(v.localita_immersione?.nome || v.luogo) ? ` · ${v.localita_immersione?.nome || v.luogo}` : ''}
+                    {(v.centri_immersione?.nome || v.centro_immersione_libero) ? ` · ${v.centri_immersione?.nome || v.centro_immersione_libero}` : ''}
+                    {(v.istruttori?.nome || v.istruttore_nome_libero) &&
+                      ` · ${v.istruttori?.nome || v.istruttore_nome_libero}`}
+                    {v.brevetti ? ` · ${descrizioneBrevetto(v.brevetti)}` : ''}
+                    {v.profondita_raggiunta ? ` · ${v.profondita_raggiunta}m` : ''}
+                    {v.corso ? ` · ${v.corso}` : ''}
+                  </span>
+                  <button className="btn-secondary" onClick={() => elimina(v)}>
+                    Elimina
+                  </button>
+                </div>
+
+                <div className="logbook-voce-conferma">
+                  <span className={'badge ' + (v.confermato_da_istruttore ? 'badge-ok' : 'badge-neutro')}>
+                    {v.confermato_da_istruttore
+                      ? `Confermata${nomeConferma ? ` da ${nomeConferma}` : ''}`
+                      : 'Da confermare'}
+                  </span>
+
+                  {!v.confermato_da_istruttore && (
+                    <button className="btn-secondary" onClick={() => toggleConferma(v)}>
+                      Conferma
+                    </button>
+                  )}
+
+                  {v.confermato_da_istruttore && (
+                    <button
+                      className="btn-secondary"
+                      disabled={!puoTogliere}
+                      title={puoTogliere ? '' : "Solo chi l'ha confermata o un amministratore può togliere la conferma"}
+                      onClick={() => toggleConferma(v)}
+                    >
+                      Togli conferma
+                    </button>
+                  )}
+                </div>
+                {v.confermato_da_istruttore && !puoTogliere && (
+                  <p className="logbook-voce-nota">
+                    Solo {nomeConferma || "chi l'ha confermata"} o un amministratore può togliere la conferma.
+                  </p>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
 

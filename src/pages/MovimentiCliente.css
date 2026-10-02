@@ -93,3 +93,44 @@
     grid-template-columns: 1fr;
   }
 }
+
+.badge-ok {
+  background: #e3f2e8;
+  color: var(--line-green);
+}
+
+.logbook-voci-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.logbook-voce {
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--chalk-dim);
+}
+
+.logbook-voce:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.logbook-voce-riga {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.logbook-voce-conferma {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.logbook-voce-nota {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0.35rem 0 0;
+}
