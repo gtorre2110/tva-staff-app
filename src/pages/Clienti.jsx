@@ -11,7 +11,6 @@ import {
 import { useIsAssistente } from '../lib/membroContext'
 import './Clienti.css'
 import './Cataloghi.css'
-import './CategorieClienteStato.css'
 
 export default function Clienti() {
   const isAssistente = useIsAssistente()
@@ -133,28 +132,6 @@ export default function Clienti() {
     return c
   }, [clienti, datiPerCliente, macrocategorie])
 
-  async function confermaRichiesta(clienteId, categoriaId) {
-    setError(null)
-    const { error: opError } = await supabase
-      .from('clienti_categorie')
-      .update({ confermata: true })
-      .eq('cliente_id', clienteId)
-      .eq('categoria_id', categoriaId)
-    if (opError) setError(opError.message)
-    else caricaClienti()
-  }
-
-  async function rifiutaRichiesta(clienteId, categoriaId) {
-    setError(null)
-    const { error: opError } = await supabase
-      .from('clienti_categorie')
-      .delete()
-      .eq('cliente_id', clienteId)
-      .eq('categoria_id', categoriaId)
-    if (opError) setError(opError.message)
-    else caricaClienti()
-  }
-
   return (
     <div className="clienti-page">
       <div className="clienti-header">
@@ -241,7 +218,6 @@ export default function Clienti() {
           const inScadenza = certificatoInScadenza(cliente)
           const CardTag = isAssistente ? 'div' : Link
           const cardProps = isAssistente ? {} : { to: String(cliente.id) }
-          const dati = datiCliente(cliente.id)
 
           return (
             <CardTag key={cliente.id} className="cliente-card" {...cardProps}>
@@ -321,57 +297,6 @@ export default function Clienti() {
                       scadenzaInArrivo(cliente.fipsas_scadenza) &&
                       ' · in scadenza'}
                   </span>
-                </div>
-              )}
-
-              {(dati.confermate.length > 0 || dati.richieste.length > 0) && (
-                <div className="categorie-cliente-chips">
-                  {dati.confermate.map((categoriaId) => {
-                    const cat = categoriePerId.get(categoriaId)
-                    if (!cat) return null
-                    return (
-                      <span key={categoriaId} className="chip-stato chip-stato-confermata">
-                        <span className="chip-stato-nome">{cat.nome}</span>
-                      </span>
-                    )
-                  })}
-                  {dati.richieste.map((categoriaId) => {
-                    const cat = categoriePerId.get(categoriaId)
-                    if (!cat) return null
-                    return (
-                      <span key={categoriaId} className="chip-stato chip-stato-richiesta">
-                        <span className="chip-stato-nome">{cat.nome}</span>
-                        {!isAssistente && (
-                          <>
-                            <button
-                              type="button"
-                              className="chip-stato-azione"
-                              title="Conferma"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                confermaRichiesta(cliente.id, categoriaId)
-                              }}
-                            >
-                              ✓
-                            </button>
-                            <button
-                              type="button"
-                              className="chip-stato-azione"
-                              title="Rifiuta"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                rifiutaRichiesta(cliente.id, categoriaId)
-                              }}
-                            >
-                              ✕
-                            </button>
-                          </>
-                        )}
-                      </span>
-                    )
-                  })}
                 </div>
               )}
 

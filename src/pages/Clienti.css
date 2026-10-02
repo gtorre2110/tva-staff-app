@@ -160,18 +160,6 @@
   margin-top: 0.1rem;
 }
 
-.cliente-card .chip-stato {
-  font-size: 0.78rem;
-}
-
-.cliente-card .chip-stato-confermata .chip-stato-nome {
-  background: var(--accent);
-  color: var(--ink);
-  padding: 0.25rem 0.7rem;
-  border-radius: 999px;
-  display: inline-block;
-}
-
 .clienti-sottocategorie {
   display: flex;
   flex-wrap: wrap;
