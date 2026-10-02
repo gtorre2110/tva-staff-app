@@ -36,16 +36,6 @@
   white-space: nowrap;
 }
 
-.badge-testo {
-  background: #e3eefb;
-  color: #0a4a85;
-}
-
-.badge-pdf {
-  background: #eee6fb;
-  color: #5a2d9c;
-}
-
 .badge-nascosta {
   background: #f1f1f1;
   color: var(--ink-soft);
@@ -53,12 +43,4 @@
 
 .modale-larga {
   max-width: 34rem;
-}
-
-.info-tipo-scelta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  font-weight: 400;
 }

@@ -48,7 +48,7 @@ export default function Aiuto() {
 
       <section>
         <h2>Info</h2>
-        <p>Documenti informativi mostrati ai clienti nella loro pagina "Info" (es. legge del mare, attrezzatura richiesta, regole di sicurezza). Per ciascuno puoi scrivere il testo direttamente qui (viene generato anche un PDF scaricabile) oppure caricare un PDF già pronto. Le freccette ordinano l'elenco, "Nascondi"/"Pubblica" decide cosa è visibile ai clienti.</p>
+        <p>Quello che i clienti trovano nella loro pagina "Info", in due schede. "Informazioni": testi che scrivi qui (legge del mare, regole di sicurezza…), con generazione automatica di un PDF scaricabile. "Documenti": PDF che carichi già pronti, da scaricare o compilare (es. un modulo vergine). Le freccette ordinano l'elenco di ciascuna scheda, "Nascondi"/"Pubblica" decide cosa è visibile ai clienti.</p>
       </section>
 
       <section>

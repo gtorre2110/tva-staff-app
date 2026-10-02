@@ -4,15 +4,24 @@ import { leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
 import { caricaImmagine } from '../lib/upload'
 import { generaPdfInfo } from '../lib/generaPdfInfo'
 import { useIsAssistente } from '../lib/membroContext'
+import './Cataloghi.css'
 import './Info.css'
 
-const VUOTO = { titolo: '', tipo: 'testo', contenuto: '', pdf_url: null, ordine: 0, pubblicata: true }
+const SCHEDE = [
+  { id: 'informazioni', label: 'Informazioni', tipo: 'testo' },
+  { id: 'documenti', label: 'Documenti', tipo: 'pdf' },
+]
+
+function vuotoPer(tipo, ordine) {
+  return { id: crypto.randomUUID(), titolo: '', tipo, contenuto: '', pdf_url: null, ordine, pubblicata: true }
+}
 
 export default function Info() {
   const soloAggiungi = useIsAssistente()
   const [pagine, setPagine] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [scheda, setScheda] = useState('informazioni')
   const [form, setForm] = useState(null)
   const [salvataggio, setSalvataggio] = useState(false)
   const [elaborandoFile, setElaborandoFile] = useState(false)
@@ -21,8 +30,14 @@ export default function Info() {
     carica()
   }, [])
 
+  function chiaveBozza(f, elencoAttuale) {
+    const esiste = elencoAttuale.some((p) => p.id === f.id)
+    return esiste ? `info-${f.id}` : `info-nuovo-${f.tipo}`
+  }
+
   useEffect(() => {
-    if (form) scriviBozza(`info-${form.id || 'nuovo'}`, form)
+    if (form) scriviBozza(chiaveBozza(form, pagine), form)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form])
 
   async function carica() {
@@ -38,9 +53,12 @@ export default function Info() {
     setLoading(false)
   }
 
+  const tipoAttivo = SCHEDE.find((s) => s.id === scheda).tipo
+  const voci = pagine.filter((p) => p.tipo === tipoAttivo)
+
   function apriNuovo() {
-    const bozza = leggiBozza('info-nuovo')
-    setForm(bozza || { ...VUOTO, id: crypto.randomUUID(), ordine: pagine.length })
+    const bozza = leggiBozza(`info-nuovo-${tipoAttivo}`)
+    setForm(bozza || vuotoPer(tipoAttivo, voci.length))
   }
 
   function apriModifica(p) {
@@ -82,7 +100,7 @@ export default function Info() {
     if (saveError) {
       setError(saveError.message)
     } else {
-      dimenticaBozza(`info-${form.id}`)
+      dimenticaBozza(chiaveBozza(form, pagine))
       setForm(null)
       carica()
     }
@@ -126,8 +144,8 @@ export default function Info() {
   }
 
   async function spostaOrdine(p, direzione) {
-    const indice = pagine.findIndex((x) => x.id === p.id)
-    const vicino = pagine[indice + direzione]
+    const indice = voci.findIndex((x) => x.id === p.id)
+    const vicino = voci[indice + direzione]
     if (!vicino) return
     const { error: updateError } = await supabase.from('info_pagine').upsert([
       { ...p, ordine: vicino.ordine },
@@ -152,31 +170,40 @@ export default function Info() {
         <div>
           <h1>Info</h1>
           <p className="info-sub">
-            Documenti informativi mostrati ai clienti nella pagina "Info" della loro app (es.
-            legge del mare, attrezzatura richiesta, regole di sicurezza). Scrivi il testo qui
-            (viene generato anche un PDF scaricabile) oppure carica direttamente un PDF già pronto.
+            Quello che i clienti trovano nella pagina "Info" della loro app: "Informazioni" sono
+            testi da leggere (es. legge del mare, regole di sicurezza), "Documenti" sono PDF da
+            scaricare o compilare (es. un modulo vergine).
           </p>
         </div>
         <button className="btn-primary" onClick={apriNuovo}>
-          + Nuovo documento
+          + {tipoAttivo === 'testo' ? 'Nuova informazione' : 'Nuovo documento'}
         </button>
+      </div>
+
+      <div className="cataloghi-tabs">
+        {SCHEDE.map((s) => (
+          <button
+            key={s.id}
+            className={'cataloghi-tab' + (scheda === s.id ? ' active' : '')}
+            onClick={() => setScheda(s.id)}
+          >
+            {s.label}
+          </button>
+        ))}
       </div>
 
       {error && <p className="modelli-error">{error}</p>}
 
       {loading ? (
         <p className="modelli-hint">Caricamento…</p>
-      ) : pagine.length === 0 ? (
-        <p className="modelli-hint">Nessun documento ancora. Aggiungine uno con "+ Nuovo documento".</p>
+      ) : voci.length === 0 ? (
+        <p className="modelli-hint">Niente ancora in questa sezione. Aggiungi con il pulsante in alto.</p>
       ) : (
         <ul className="catalogo-list info-list">
-          {pagine.map((p, i) => (
+          {voci.map((p, i) => (
             <li key={p.id}>
               <span className="info-riga-titolo">
                 <strong>{p.titolo}</strong>
-                <span className={'badge ' + (p.tipo === 'testo' ? 'badge-testo' : 'badge-pdf')}>
-                  {p.tipo === 'testo' ? 'Testo' : 'PDF'}
-                </span>
                 {!p.pubblicata && <span className="badge badge-nascosta">Non pubblicata</span>}
               </span>
               <span className="catalogo-azioni">
@@ -187,7 +214,7 @@ export default function Info() {
                     </button>
                     <button
                       className="btn-secondary"
-                      disabled={i === pagine.length - 1}
+                      disabled={i === voci.length - 1}
                       onClick={() => spostaOrdine(p, 1)}
                       title="Sposta giù"
                     >
@@ -213,7 +240,11 @@ export default function Info() {
       {form && (
         <div className="modale-overlay" onClick={() => setForm(null)}>
           <div className="modale modale-larga" onClick={(e) => e.stopPropagation()}>
-            <h2>{pagine.some((p) => p.id === form.id) ? 'Modifica documento' : 'Nuovo documento'}</h2>
+            <h2>
+              {pagine.some((p) => p.id === form.id)
+                ? form.tipo === 'testo' ? 'Modifica informazione' : 'Modifica documento'
+                : form.tipo === 'testo' ? 'Nuova informazione' : 'Nuovo documento'}
+            </h2>
             <form onSubmit={salva} className="modello-form">
               <div className="form-field">
                 <label>Titolo</label>
@@ -222,30 +253,6 @@ export default function Info() {
                   onChange={(e) => setForm((p) => ({ ...p, titolo: e.target.value }))}
                   required
                 />
-              </div>
-
-              <div className="form-field">
-                <label>Tipo di documento</label>
-                <div className="info-tipo-scelta">
-                  <label>
-                    <input
-                      type="radio"
-                      name="tipo"
-                      checked={form.tipo === 'testo'}
-                      onChange={() => setForm((p) => ({ ...p, tipo: 'testo' }))}
-                    />{' '}
-                    Scrivi il testo qui (genera anche un PDF)
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="tipo"
-                      checked={form.tipo === 'pdf'}
-                      onChange={() => setForm((p) => ({ ...p, tipo: 'pdf' }))}
-                    />{' '}
-                    Carica un PDF già pronto
-                  </label>
-                </div>
               </div>
 
               {form.tipo === 'testo' ? (
@@ -260,7 +267,7 @@ export default function Info() {
                   </div>
                   <div className="form-field">
                     <button type="button" className="btn-secondary" onClick={generaPdf} disabled={elaborandoFile}>
-                      {elaborandoFile ? 'Genero…' : form.pdf_url ? 'Rigenera PDF da questo testo' : 'Genera PDF da questo testo'}
+                      {elaborandoFile ? 'Genero…' : form.pdf_url ? 'Rigenera PDF da questo testo' : 'Genera anche un PDF scaricabile'}
                     </button>
                     {form.pdf_url && (
                       <a href={form.pdf_url} target="_blank" rel="noreferrer" className="field-hint">
@@ -271,7 +278,7 @@ export default function Info() {
                 </>
               ) : (
                 <div className="form-field">
-                  <label>File PDF</label>
+                  <label>File PDF da caricare (es. modulo vergine da compilare)</label>
                   <input type="file" accept="application/pdf" onChange={caricaPdf} disabled={elaborandoFile} />
                   {elaborandoFile && <span className="field-hint">Carico…</span>}
                   {form.pdf_url && (
