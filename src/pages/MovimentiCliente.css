@@ -106,6 +106,11 @@
 }
 
 .logbook-voce {
+  /* .prenotazioni-list li impone display:flex sul <li>: lo sovrascriviamo
+     per tornare a un impilamento verticale delle due righe (dati / azioni). */
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch !important;
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--chalk-dim);
 }
@@ -118,20 +123,20 @@
 .logbook-voce-riga {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  min-height: 1.6rem;
 }
 
 .logbook-voce-azioni {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   align-items: stretch;
   gap: 0.6rem;
-  margin-top: 0.5rem;
+  margin-top: 0.6rem;
 }
 
 .logbook-voce-azioni > * {
-  flex: 1 1 0;
   min-width: 0;
+  min-height: 2.9rem;
 }
 
 .logbook-voce-azioni .badge {
@@ -144,9 +149,13 @@
   border-radius: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 0.3rem 0.5rem;
 }
 
 .logbook-voce-azioni button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
