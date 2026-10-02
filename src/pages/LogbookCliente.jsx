@@ -198,35 +198,20 @@ export default function LogbookCliente({ clienteId }) {
                     {v.profondita_raggiunta ? ` · ${v.profondita_raggiunta}m` : ''}
                     {v.corso ? ` · ${v.corso}` : ''}
                   </span>
-                  <button className="btn-secondary" onClick={() => elimina(v)}>
-                    Elimina
-                  </button>
                 </div>
 
-                <div className="logbook-voce-conferma">
+                <div className="logbook-voce-azioni">
                   <span className={'badge ' + (v.confermato_da_istruttore ? 'badge-ok' : 'badge-neutro')}>
-                    {v.confermato_da_istruttore ? (
-                      nomeConferma ? (
-                        <>
-                          Confermato da
-                          <br />
-                          {nomeConferma}
-                        </>
-                      ) : (
-                        'Confermata'
-                      )
-                    ) : (
-                      'Da confermare'
-                    )}
+                    {v.confermato_da_istruttore
+                      ? `Confermato${nomeConferma ? ` da ${nomeConferma}` : ''}`
+                      : 'Da confermare'}
                   </span>
 
-                  {!v.confermato_da_istruttore && (
+                  {!v.confermato_da_istruttore ? (
                     <button className="btn-secondary" onClick={() => toggleConferma(v)}>
                       Conferma
                     </button>
-                  )}
-
-                  {v.confermato_da_istruttore && (
+                  ) : (
                     <button
                       className="btn-secondary"
                       disabled={!puoTogliere}
@@ -236,6 +221,10 @@ export default function LogbookCliente({ clienteId }) {
                       Togli conferma
                     </button>
                   )}
+
+                  <button className="btn-secondary" onClick={() => elimina(v)}>
+                    Elimina
+                  </button>
                 </div>
                 {v.confermato_da_istruttore && !puoTogliere && (
                   <p className="logbook-voce-nota">
