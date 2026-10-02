@@ -1,8 +1,9 @@
-// Genera il PDF di una singola uscita del registro immersioni
-// (Post-evento, Legge 70/2006): prima parte con gli stessi dati già
-// esportati in CSV, poi una scheda per partecipante con nome, cognome e
-// immagine del suo brevetto. Formato A4, titolo con località e data,
-// piè di pagina con numero progressivo.
+// Genera i PDF del registro immersioni (Legge 70/2006), A4, con titolo e
+// piè di pagina con numero progressivo:
+//  - generaPdfRegistroUscita: una singola uscita del Post-evento (dati già
+//    esportati in CSV + una scheda per partecipante con la sua immagine)
+//  - generaPdfRegistroPreEvento: gli iscritti a un'attività, col loro
+//    brevetto più alto e relativa immagine
 
 import jsPDF from 'jspdf'
 import { formattaData, formattaOra } from './attivita'
@@ -23,9 +24,9 @@ function formatoDa(dataUrl) {
 }
 
 // Scarica l'immagine del brevetto e la converte in data URL per jsPDF.
-// Se manca, è un PDF (non un'immagine) o il caricamento fallisce (CORS,
-// file cancellato, ecc.), restituisce null: il chiamante mostra un
-// riquadro "Immagine non disponibile" invece di bloccare l'export.
+// Se manca, è un PDF non ancora convertito o il caricamento fallisce
+// (CORS, file cancellato, ecc.), restituisce null: il chiamante lascia lo
+// spazio vuoto invece di bloccare l'export.
 async function caricaImmagine(url) {
   if (!url || url.toLowerCase().endsWith('.pdf')) return null
   try {
@@ -67,20 +68,83 @@ function scriviCampo(doc, etichetta, valore, y) {
   return y + Math.max(righe.length, 1) * 5.6 + 2.5
 }
 
-export async function generaPdfRegistroUscita(riga, partecipanti) {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-  let y = MARGINE
-
-  const titolo = `${riga.localita || 'Uscita'} — ${formattaData(riga.data)}`
+function scriviTitolo(doc, titolo) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
   const righeTitolo = doc.splitTextToSize(titolo, LARGHEZZA_UTILE)
-  doc.text(righeTitolo, MARGINE, y)
-  y += righeTitolo.length * 8 + 4
-
+  doc.text(righeTitolo, MARGINE, MARGINE)
+  let y = MARGINE + righeTitolo.length * 8 + 4
   doc.setDrawColor(190)
   doc.line(MARGINE, y, LARGHEZZA_PAGINA - MARGINE, y)
-  y += 9
+  return y + 9
+}
+
+function scriviIntestazioneSezione(doc, testo, y) {
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text(testo, MARGINE, y)
+  return y + 9
+}
+
+// Disegna la scheda di un partecipante (immagine a sinistra — o lo spazio
+// vuoto se non disponibile, per mantenere l'allineamento — nome/cognome e
+// brevetto a destra), passando pagina quando non c'è più posto. Restituisce
+// la nuova y.
+async function scriviSchedaPartecipante(doc, p, y) {
+  const altezzaBlocco = ALTEZZA_IMMAGINE + 14
+  if (y + altezzaBlocco > ALTEZZA_PAGINA - MARGINE) {
+    doc.addPage()
+    y = MARGINE
+  }
+
+  const immagine = await caricaImmagine(p.immagine_url)
+
+  if (immagine) {
+    const scala = Math.min(LARGHEZZA_IMMAGINE / immagine.larghezza, ALTEZZA_IMMAGINE / immagine.altezza)
+    const larghezzaFinale = immagine.larghezza * scala
+    const altezzaFinale = immagine.altezza * scala
+    const xImg = MARGINE + (LARGHEZZA_IMMAGINE - larghezzaFinale) / 2
+    const yImg = y + (ALTEZZA_IMMAGINE - altezzaFinale) / 2
+    doc.addImage(immagine.dataUrl, formatoDa(immagine.dataUrl), xImg, yImg, larghezzaFinale, altezzaFinale)
+  }
+  // Se l'immagine manca, lo spazio (LARGHEZZA_IMMAGINE × ALTEZZA_IMMAGINE)
+  // resta semplicemente vuoto: nessun riquadro, nessuna scritta, così
+  // l'allineamento con le schede vicine non cambia.
+
+  const xTesto = MARGINE + LARGHEZZA_IMMAGINE + 8
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(12)
+  doc.text(`${p.cognome} ${p.nome}`, xTesto, y + 8)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  const righeBrevetto = doc.splitTextToSize(
+    p.brevetto_descrizione || 'Nessun brevetto registrato',
+    LARGHEZZA_UTILE - LARGHEZZA_IMMAGINE - 8
+  )
+  doc.text(righeBrevetto, xTesto, y + 15)
+
+  return y + altezzaBlocco
+}
+
+function aggiungiPiePagina(doc) {
+  const totalePagine = doc.internal.getNumberOfPages()
+  for (let pagina = 1; pagina <= totalePagine; pagina++) {
+    doc.setPage(pagina)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(130)
+    doc.text(`Pag. ${pagina} di ${totalePagine}`, LARGHEZZA_PAGINA / 2, ALTEZZA_PAGINA - 10, { align: 'center' })
+    doc.setTextColor(0)
+  }
+}
+
+function nomeFileSicuro(testo) {
+  return (testo || 'registro').toLowerCase().replace(/[^a-z0-9]+/g, '-')
+}
+
+export async function generaPdfRegistroUscita(riga, partecipanti) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+  let y = scriviTitolo(doc, `${riga.localita || 'Uscita'} — ${formattaData(riga.data)}`)
 
   y = scriviCampo(doc, 'Orario', `${formattaOra(riga.ora_inizio)} – ${formattaOra(riga.ora_fine)}`, y)
   y = scriviCampo(doc, 'Centro di immersione', riga.centro_immersione, y)
@@ -100,66 +164,33 @@ export async function generaPdfRegistroUscita(riga, partecipanti) {
   doc.setDrawColor(190)
   doc.line(MARGINE, y, LARGHEZZA_PAGINA - MARGINE, y)
   y += 10
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.text('Partecipanti e brevetti', MARGINE, y)
-  y += 9
+  y = scriviIntestazioneSezione(doc, 'Partecipanti e brevetti', y)
 
   for (const p of partecipanti) {
-    const altezzaBlocco = ALTEZZA_IMMAGINE + 14
-    if (y + altezzaBlocco > ALTEZZA_PAGINA - MARGINE) {
-      doc.addPage()
-      y = MARGINE
-    }
-
-    const immagine = await caricaImmagine(p.immagine_url)
-
-    if (immagine) {
-      const scala = Math.min(LARGHEZZA_IMMAGINE / immagine.larghezza, ALTEZZA_IMMAGINE / immagine.altezza)
-      const larghezzaFinale = immagine.larghezza * scala
-      const altezzaFinale = immagine.altezza * scala
-      const xImg = MARGINE + (LARGHEZZA_IMMAGINE - larghezzaFinale) / 2
-      const yImg = y + (ALTEZZA_IMMAGINE - altezzaFinale) / 2
-      doc.addImage(immagine.dataUrl, formatoDa(immagine.dataUrl), xImg, yImg, larghezzaFinale, altezzaFinale)
-    } else {
-      doc.setDrawColor(210)
-      doc.rect(MARGINE, y, LARGHEZZA_IMMAGINE, ALTEZZA_IMMAGINE)
-      doc.setFont('helvetica', 'italic')
-      doc.setFontSize(9)
-      doc.setTextColor(140)
-      doc.text('Immagine non disponibile', MARGINE + LARGHEZZA_IMMAGINE / 2, y + ALTEZZA_IMMAGINE / 2, {
-        align: 'center',
-        maxWidth: LARGHEZZA_IMMAGINE - 6,
-      })
-      doc.setTextColor(0)
-    }
-
-    const xTesto = MARGINE + LARGHEZZA_IMMAGINE + 8
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(12)
-    doc.text(`${p.cognome} ${p.nome}`, xTesto, y + 8)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    const righeBrevetto = doc.splitTextToSize(
-      p.brevetto_descrizione || 'Nessun brevetto registrato',
-      LARGHEZZA_UTILE - LARGHEZZA_IMMAGINE - 8
-    )
-    doc.text(righeBrevetto, xTesto, y + 15)
-
-    y += altezzaBlocco
+    y = await scriviSchedaPartecipante(doc, p, y)
   }
 
-  const totalePagine = doc.internal.getNumberOfPages()
-  for (let pagina = 1; pagina <= totalePagine; pagina++) {
-    doc.setPage(pagina)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(130)
-    doc.text(`Pag. ${pagina} di ${totalePagine}`, LARGHEZZA_PAGINA / 2, ALTEZZA_PAGINA - 10, { align: 'center' })
-    doc.setTextColor(0)
+  aggiungiPiePagina(doc)
+  doc.save(`registro-${nomeFileSicuro(riga.localita)}-${riga.data}.pdf`)
+}
+
+export async function generaPdfRegistroPreEvento(attivita, iscritti) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+  let y = scriviTitolo(doc, `${attivita.nome || 'Attività'} — ${formattaData(attivita.data)}`)
+
+  y = scriviCampo(doc, 'Orario', formattaOra(attivita.ora_inizio), y)
+  y = scriviCampo(doc, 'Iscritti confermati', String(iscritti.length), y)
+
+  y += 5
+  doc.setDrawColor(190)
+  doc.line(MARGINE, y, LARGHEZZA_PAGINA - MARGINE, y)
+  y += 10
+  y = scriviIntestazioneSezione(doc, 'Partecipanti e brevetti', y)
+
+  for (const p of iscritti) {
+    y = await scriviSchedaPartecipante(doc, p, y)
   }
 
-  const nomeFile = `registro-${(riga.localita || 'uscita').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${riga.data}.pdf`
-  doc.save(nomeFile)
+  aggiungiPiePagina(doc)
+  doc.save(`registro-pre-evento-${nomeFileSicuro(attivita.nome)}-${attivita.data}.pdf`)
 }

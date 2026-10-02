@@ -3,17 +3,17 @@ import { supabase } from '../supabaseClient'
 import { scaricaCSV } from '../lib/csv'
 import BottoneDrive from '../components/BottoneDrive'
 import { formattaData, formattaOra } from '../lib/attivita'
-import { generaPdfRegistroUscita } from '../lib/generaPdfRegistro'
+import { generaPdfRegistroUscita, generaPdfRegistroPreEvento } from '../lib/generaPdfRegistro'
 import './Cataloghi.css'
 import './RegistroImmersioni.css'
 
 const SCHEDE = [
-  { id: 'post', label: 'Post-evento (dai logbook)' },
   { id: 'pre', label: 'Pre-evento (dalle prenotazioni)' },
+  { id: 'post', label: 'Post-evento (dai logbook)' },
 ]
 
 export default function RegistroImmersioni() {
-  const [scheda, setScheda] = useState('post')
+  const [scheda, setScheda] = useState('pre')
 
   return (
     <div className="cataloghi-page">
@@ -165,6 +165,7 @@ function RegistroPreEvento() {
   const [loading, setLoading] = useState(true)
   const [loadingIscritti, setLoadingIscritti] = useState(false)
   const [error, setError] = useState(null)
+  const [generandoPdf, setGenerandoPdf] = useState(false)
 
   useEffect(() => {
     caricaOccorrenze()
@@ -209,7 +210,7 @@ function RegistroPreEvento() {
     if (clienteIds.length > 0) {
       const { data: brevetti, error: e2 } = await supabase
         .from('brevetti')
-        .select('cliente_id, tipo_brevetto_libero, tipi_brevetto(tipo_brevetto, didattica, livello)')
+        .select('cliente_id, immagine_url, tipo_brevetto_libero, tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url)')
         .in('cliente_id', clienteIds)
 
       if (e2) {
@@ -222,6 +223,7 @@ function RegistroPreEvento() {
             brevettiPerCliente.set(b.cliente_id, {
               livello,
               descrizione: `${b.tipi_brevetto.didattica} — ${b.tipi_brevetto.tipo_brevetto} (liv. ${livello})`,
+              immagine_url: b.immagine_url || b.tipi_brevetto?.immagine_url || null,
             })
           }
         }
@@ -229,12 +231,16 @@ function RegistroPreEvento() {
     }
 
     setIscritti(
-      (prenotazioni || []).map((p) => ({
-        cliente_id: p.cliente_id,
-        nome: p.clienti?.nome,
-        cognome: p.clienti?.cognome,
-        brevetto: brevettiPerCliente.get(p.cliente_id)?.descrizione || 'Nessun brevetto con livello numerico',
-      }))
+      (prenotazioni || []).map((p) => {
+        const brevetto = brevettiPerCliente.get(p.cliente_id)
+        return {
+          cliente_id: p.cliente_id,
+          nome: p.clienti?.nome,
+          cognome: p.clienti?.cognome,
+          brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto con livello numerico',
+          immagine_url: brevetto?.immagine_url || null,
+        }
+      })
     )
     setLoadingIscritti(false)
   }
@@ -244,12 +250,24 @@ function RegistroPreEvento() {
   const colonneCSV = [
     { chiave: 'cognome', etichetta: 'Cognome' },
     { chiave: 'nome', etichetta: 'Nome' },
-    { chiave: 'brevetto', etichetta: 'Brevetto più alto' },
+    { chiave: 'brevetto_descrizione', etichetta: 'Brevetto più alto' },
   ]
 
   function esporta() {
     if (!attivitaSelezionata) return
     scaricaCSV(`registro-pre-evento-${attivitaSelezionata.data}.csv`, colonneCSV, iscritti)
+  }
+
+  async function esportaPdf() {
+    if (!attivitaSelezionata) return
+    setGenerandoPdf(true)
+    setError(null)
+    try {
+      await generaPdfRegistroPreEvento(attivitaSelezionata, iscritti)
+    } catch (err) {
+      setError('Errore nella generazione del PDF: ' + err.message)
+    }
+    setGenerandoPdf(false)
   }
 
   return (
@@ -280,6 +298,9 @@ function RegistroPreEvento() {
               <button className="btn-primary" onClick={esporta} disabled={iscritti.length === 0}>
                 Esporta CSV
               </button>
+              <button className="btn-secondary" onClick={esportaPdf} disabled={iscritti.length === 0 || generandoPdf}>
+                {generandoPdf ? 'Preparo il PDF…' : 'Esporta PDF'}
+              </button>
               <BottoneDrive
                 nomeFile={attivitaSelezionata ? `registro-pre-evento-${attivitaSelezionata.data}.csv` : 'registro-pre-evento.csv'}
                 colonne={colonneCSV}
@@ -298,7 +319,7 @@ function RegistroPreEvento() {
               {iscritti.map((i) => (
                 <li key={i.cliente_id}>
                   <span>
-                    <strong>{i.cognome} {i.nome}</strong> — {i.brevetto}
+                    <strong>{i.cognome} {i.nome}</strong> — {i.brevetto_descrizione}
                   </span>
                 </li>
               ))}
