@@ -129,6 +129,13 @@
   margin-top: 0.5rem;
 }
 
+.logbook-voce-conferma .badge {
+  white-space: normal;
+  line-height: 1.3;
+  border-radius: 8px;
+  text-align: center;
+}
+
 .logbook-voce-nota {
   font-size: 0.78rem;
   color: var(--ink-soft);

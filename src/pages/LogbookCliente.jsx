@@ -205,9 +205,19 @@ export default function LogbookCliente({ clienteId }) {
 
                 <div className="logbook-voce-conferma">
                   <span className={'badge ' + (v.confermato_da_istruttore ? 'badge-ok' : 'badge-neutro')}>
-                    {v.confermato_da_istruttore
-                      ? `Confermata${nomeConferma ? ` da ${nomeConferma}` : ''}`
-                      : 'Da confermare'}
+                    {v.confermato_da_istruttore ? (
+                      nomeConferma ? (
+                        <>
+                          Confermato da
+                          <br />
+                          {nomeConferma}
+                        </>
+                      ) : (
+                        'Confermata'
+                      )
+                    ) : (
+                      'Da confermare'
+                    )}
                   </span>
 
                   {!v.confermato_da_istruttore && (
