@@ -15,7 +15,7 @@
 
 .movimenti-form {
   display: grid;
-  grid-template-columns: 7rem 1fr auto;
+  grid-template-columns: 7rem 1fr 1fr 9rem auto;
   gap: 0.6rem;
 }
 
@@ -163,4 +163,25 @@
   font-size: 0.78rem;
   color: var(--ink-soft);
   margin: 0.35rem 0 0;
+}
+
+.movimenti-attivita {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border: 1.5px solid var(--chalk-dim);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  min-width: 0;
+}
+
+@media (min-width: 501px) and (max-width: 700px) {
+  .movimenti-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .movimenti-form input[type='text'],
+  .movimenti-attivita {
+    grid-column: 1 / -1;
+  }
 }
