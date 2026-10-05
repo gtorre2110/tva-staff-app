@@ -366,6 +366,7 @@ function CheckInAttivita({ occorrenza, macroNome, onCambia, onAggiornato }) {
                 <div className="checkin-persona-info">
                   <div className="checkin-persona-nome">{cl.cognome} {cl.nome}</div>
                   <div className="checkin-persona-saldo">Ingressi disponibili: {cl.ingressi_disponibili ?? '—'}</div>
+                  {p.tardiva && <div className="checkin-persona-warn alert">Prenotazione TARDIVA (dopo la chiusura) — da verificare</div>}
                   {warn && <div className={'checkin-persona-warn' + (bloccato ? ' alert' : '')}>{warn}</div>}
                 </div>
                 <button
@@ -386,7 +387,7 @@ function CheckInAttivita({ occorrenza, macroNome, onCambia, onAggiornato }) {
           <ul className="prenotazioni-list">
             {altre.map((p) => (
               <li key={p.id} className={p.stato === 'annullata' ? 'annullata' : ''}>
-                <span className="prenotazione-nome">{p.cognome} {p.nome}</span>
+                <span className="prenotazione-nome">{p.cognome} {p.nome}{p.tardiva ? ' · TARDIVA' : ''}</span>
                 <span className={'badge badge-stato-' + p.stato.replace(/\s+/g, '_')}>
                   {p.stato === 'in_coda' ? 'In lista d\'attesa' : p.stato}
                 </span>
