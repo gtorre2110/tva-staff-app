@@ -15,11 +15,12 @@
 
 .movimenti-form {
   display: grid;
-  grid-template-columns: 7rem 1fr 1fr 9rem auto;
+  grid-template-columns: 7rem 1fr 9rem auto;
   gap: 0.6rem;
 }
 
 .movimenti-form input {
+  min-width: 0;
   font-family: var(--font-body);
   font-size: 0.9rem;
   padding: 0.55rem 0.7rem;
@@ -166,6 +167,8 @@
 }
 
 .movimenti-attivita {
+  grid-column: 1 / -1;
+  order: 5;
   font-family: var(--font-body);
   font-size: 0.9rem;
   padding: 0.55rem 0.7rem;
@@ -174,14 +177,4 @@
   background: #fff;
   color: var(--ink);
   min-width: 0;
-}
-
-@media (min-width: 501px) and (max-width: 700px) {
-  .movimenti-form {
-    grid-template-columns: 1fr 1fr;
-  }
-  .movimenti-form input[type='text'],
-  .movimenti-attivita {
-    grid-column: 1 / -1;
-  }
 }
