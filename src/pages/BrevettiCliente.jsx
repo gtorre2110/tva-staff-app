@@ -3,6 +3,8 @@ import { supabase } from '../supabaseClient'
 import { useBozza } from '../lib/useBozza'
 import { formattaData } from '../lib/attivita'
 import { ordinaBrevetti } from '../lib/brevetti'
+import { eliminaImmagine } from '../lib/upload'
+import { useIsAssistente } from '../lib/membroContext'
 
 const VUOTO = {
   tipo_brevetto_id: '', didattica_libera: '', tipo_brevetto_libero: '', livello_libero: '',
@@ -10,6 +12,7 @@ const VUOTO = {
 }
 
 export default function BrevettiCliente({ clienteId }) {
+  const isAssistente = useIsAssistente()
   const [brevetti, setBrevetti] = useState([])
   const [tipi, setTipi] = useState([])
   const [istruttori, setIstruttori] = useState([])
@@ -80,6 +83,22 @@ export default function BrevettiCliente({ clienteId }) {
     else carica()
   }
 
+  // Toglie la foto del brevetto caricata dal cliente (es. foto sbagliata):
+  // il cliente potrà caricarne un'altra, e se il tipo ha un'immagine
+  // standard in catalogo tornerà a vedere quella.
+  async function eliminaImmagineBrevetto(b) {
+    if (!confirm("Eliminare l'immagine di questo brevetto? Il cliente potrà caricarne un'altra.")) return
+    setError(null)
+    const { error: rimozioneError } = await eliminaImmagine('immagini-brevetti', b.immagine_url)
+    if (rimozioneError) {
+      setError(rimozioneError.message)
+      return
+    }
+    const { error: updateError } = await supabase.from('brevetti').update({ immagine_url: null }).eq('id', b.id)
+    if (updateError) setError(updateError.message)
+    else carica()
+  }
+
   return (
     <div className="movimenti-box">
       <h2>Brevetti</h2>
@@ -103,9 +122,16 @@ export default function BrevettiCliente({ clienteId }) {
                   {istruttore ? ` · ${istruttore}` : ''}
                   {b.data_emissione ? ` · emesso ${formattaData(b.data_emissione)}` : ''}
                 </span>
-                <button className="btn-secondary" onClick={() => elimina(b)}>
-                  Elimina
-                </button>
+                <span className="catalogo-azioni">
+                  {b.immagine_url && !isAssistente && (
+                    <button className="btn-secondary" onClick={() => eliminaImmagineBrevetto(b)}>
+                      Elimina immagine
+                    </button>
+                  )}
+                  <button className="btn-secondary" onClick={() => elimina(b)}>
+                    Elimina
+                  </button>
+                </span>
               </li>
             )
           })}
