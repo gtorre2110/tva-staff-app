@@ -1,7 +1,7 @@
 // Genera i PDF del registro immersioni (Legge 70/2006), A4 orizzontale:
 //  - una tabella riepilogativa in alto con tutti i campi previsti dalla
-//    normativa (una riga: i partecipanti e i relativi brevetti, uno per
-//    riga, dentro le rispettive celle)
+//    normativa: una riga per partecipante, con i dati comuni ripetuti
+//    (struttura condivisa col CSV: vedi registroRighe.js)
 //  - sotto, una griglia con l'immagine del brevetto di ciascun
 //    partecipante (nome e cognome ripetuti sopra l'immagine)
 //
@@ -11,7 +11,8 @@
 
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { formattaData, formattaOra } from './attivita'
+import { formattaData } from './attivita'
+import { COLONNE_REGISTRO, righeRegistro, comuniUscita, comuniPreEvento } from './registroRighe'
 
 const MARGINE = 12
 const LARGHEZZA_PAGINA = 297
@@ -78,38 +79,18 @@ function scriviIntestazioneSezione(doc, testo, y) {
 }
 
 // Disegna la tabella riepilogativa con tutti i campi previsti dalla
-// normativa: UNA RIGA PER PARTECIPANTE, con i dati comuni (data, orari,
-// località, centro, istruttore, profondità, autorespiratori, miscele)
-// ripetuti su ogni riga. `righe` è un array di { partecipante, brevetto }.
-function scriviTabellaRiepilogo(doc, y, campi) {
-  const { data, oraInizio, oraFine, localita, centro, istruttoreNome, istruttoreInfo, righe, profondita, autorespiratori, miscele } = campi
-  const comuni = [data || '', oraInizio || '', oraFine || '', localita || '', centro || '', istruttoreNome || '', istruttoreInfo || '']
-  const finali = [profondita || '', autorespiratori || '', miscele || '']
-  const elenco = righe && righe.length > 0 ? righe : [{ partecipante: '', brevetto: '' }]
-
+// normativa: UNA RIGA PER PARTECIPANTE, con i dati comuni ripetuti su ogni
+// riga. Le colonne e le righe sono quelle di registroRighe.js, le stesse
+// del file CSV.
+function scriviTabellaRiepilogo(doc, y, righe) {
   autoTable(doc, {
     startY: y,
     margin: { left: MARGINE, right: MARGINE },
     theme: 'grid',
     styles: { font: 'helvetica', fontSize: 8, cellPadding: 1.8, valign: 'top', lineColor: 190 },
     headStyles: { fillColor: [235, 235, 235], textColor: 20, fontStyle: 'bold' },
-    head: [
-      [
-        'Data',
-        'Orario inizio',
-        'Orario fine',
-        'Località',
-        'Centro di immersione',
-        'Istruttore',
-        'Istruttore (didattica — n. brevetto)',
-        'Partecipante',
-        'Brevetto',
-        'Profondità massima (m)',
-        'Autorespiratore/i',
-        'Miscela/e',
-      ],
-    ],
-    body: elenco.map((r) => [...comuni, r.partecipante || '', r.brevetto || '', ...finali]),
+    head: [COLONNE_REGISTRO.map((c) => c.etichetta)],
+    body: righe.map((r) => COLONNE_REGISTRO.map((c) => r[c.chiave] || '')),
   })
 
   return doc.lastAutoTable.finalY + 10
@@ -190,33 +171,11 @@ export async function cercaInfoIstruttore(supabase, nomeIstruttore) {
   return data || null
 }
 
-function testoInfoIstruttore(info) {
-  if (!info) return ''
-  return [info.didattica, info.numero_brevetto_istruttore ? `n. ${info.numero_brevetto_istruttore}` : null]
-    .filter(Boolean)
-    .join(' — ')
-}
-
 export async function generaPdfRegistroUscita(riga, partecipanti, istruttoreInfo) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' })
   let y = scriviTitolo(doc, `${riga.localita || 'Uscita'} — ${formattaData(riga.data)}`)
 
-  y = scriviTabellaRiepilogo(doc, y, {
-    data: formattaData(riga.data),
-    oraInizio: formattaOra(riga.ora_inizio),
-    oraFine: formattaOra(riga.ora_fine),
-    localita: riga.localita,
-    centro: riga.centro_immersione,
-    istruttoreNome: riga.istruttore,
-    istruttoreInfo: testoInfoIstruttore(istruttoreInfo),
-    righe: partecipanti.map((p) => ({
-      partecipante: `${p.cognome || ''} ${p.nome || ''}`.trim(),
-      brevetto: p.brevetto_descrizione || '—',
-    })),
-    profondita: riga.profondita_massima_raggiunta ? `${riga.profondita_massima_raggiunta}` : '',
-    autorespiratori: riga.autorespiratori,
-    miscele: riga.miscele,
-  })
+  y = scriviTabellaRiepilogo(doc, y, righeRegistro(comuniUscita(riga, istruttoreInfo), partecipanti))
 
   y = scriviIntestazioneSezione(doc, 'Brevetti dei partecipanti', y)
   await scrivigrigliaBrevetti(doc, partecipanti, y)
@@ -229,22 +188,7 @@ export async function generaPdfRegistroPreEvento(attivita, iscritti, extra = {})
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' })
   let y = scriviTitolo(doc, `${attivita.nome || 'Attività'} — ${formattaData(attivita.data)}`)
 
-  y = scriviTabellaRiepilogo(doc, y, {
-    data: formattaData(attivita.data),
-    oraInizio: formattaOra(attivita.ora_inizio),
-    oraFine: attivita.ora_fine ? formattaOra(attivita.ora_fine) : '',
-    localita: extra.localita || '',
-    centro: extra.centro || '',
-    istruttoreNome: '',
-    istruttoreInfo: '',
-    righe: iscritti.map((p) => ({
-      partecipante: `${p.cognome || ''} ${p.nome || ''}`.trim(),
-      brevetto: p.brevetto_descrizione || '—',
-    })),
-    profondita: '',
-    autorespiratori: '',
-    miscele: '',
-  })
+  y = scriviTabellaRiepilogo(doc, y, righeRegistro(comuniPreEvento(attivita, extra), iscritti))
 
   y = scriviIntestazioneSezione(doc, 'Brevetti dei partecipanti', y)
   await scrivigrigliaBrevetti(doc, iscritti, y)

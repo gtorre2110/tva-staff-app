@@ -3,10 +3,10 @@ import { supabase } from '../supabaseClient'
 import { scaricaCSV } from '../lib/csv'
 import BottoneDrive from '../components/BottoneDrive'
 import { formattaData, formattaOra } from '../lib/attivita'
+import { COLONNE_REGISTRO, righeRegistro, comuniUscita, comuniPreEvento } from '../lib/registroRighe'
 import { generaPdfRegistroUscita, generaPdfRegistroPreEvento, cercaInfoIstruttore } from '../lib/generaPdfRegistro'
 import { selezionaBrevettoPrincipale, ordinaPartecipanti } from '../lib/brevetti'
 import './Cataloghi.css'
-import './Modelli.css'
 import './RegistroImmersioni.css'
 
 const SELEZIONE_BREVETTI =
@@ -35,6 +35,38 @@ async function caricaBrevettoPrincipalePerClienti(clienteIds) {
     mappa.set(clienteId, selezionaBrevettoPrincipale(lista))
   }
   return mappa
+}
+
+// Partecipanti di una uscita del post-evento, con il brevetto principale,
+// già nell'ordine dei registri (istruttori per primi, poi livello e cognome).
+async function caricaPartecipantiUscita(r) {
+  const { data: partecipantiGrezzi, error: rpcError } = await supabase.rpc('registro_immersioni_partecipanti', {
+    p_data: r.data,
+    p_ora_inizio: r.ora_inizio,
+    p_ora_fine: r.ora_fine,
+    p_localita: r.localita,
+    p_centro: r.centro_immersione,
+    p_istruttore: r.istruttore,
+  })
+  if (rpcError) throw rpcError
+
+  const clienteIds = (partecipantiGrezzi || []).map((p) => p.cliente_id)
+  const brevettoPerCliente = await caricaBrevettoPrincipalePerClienti(clienteIds)
+
+  return ordinaPartecipanti(
+    (partecipantiGrezzi || []).map((p) => {
+      const brevetto = brevettoPerCliente.get(p.cliente_id)
+      return {
+        cliente_id: p.cliente_id,
+        nome: p.nome,
+        cognome: p.cognome,
+        brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto registrato',
+        immagine_url: brevetto?.immagine_url || null,
+        livello: brevetto?.livello ?? null,
+        haIstruttore: !!brevetto?.haIstruttore,
+      }
+    })
+  )
 }
 
 const SCHEDE = [
@@ -77,6 +109,7 @@ function RegistroPostEvento() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [generandoPdf, setGenerandoPdf] = useState(null)
+  const [generandoCsv, setGenerandoCsv] = useState(false)
 
   useEffect(() => {
     carica()
@@ -94,58 +127,38 @@ function RegistroPostEvento() {
     setLoading(false)
   }
 
-  const colonneCSV = [
-    { chiave: 'data', etichetta: 'Data' },
-    { chiave: 'ora_inizio', etichetta: 'Orario inizio' },
-    { chiave: 'ora_fine', etichetta: 'Orario fine' },
-    { chiave: 'localita', etichetta: 'Località' },
-    { chiave: 'centro_immersione', etichetta: 'Centro di immersione' },
-    { chiave: 'istruttore', etichetta: 'Istruttore' },
-    { chiave: 'partecipanti', etichetta: 'Partecipanti' },
-    { chiave: 'brevetti', etichetta: 'Brevetti' },
-    { chiave: 'profondita_massima_raggiunta', etichetta: 'Profondità massima raggiunta (m)' },
-    { chiave: 'autorespiratori', etichetta: 'Autorespiratore/i' },
-    { chiave: 'miscele', etichetta: 'Miscela/e' },
-  ]
+  // Tutte le uscite, una riga per partecipante, stesse colonne del PDF.
+  async function preparaRighePost() {
+    const cacheIstruttori = new Map()
+    const risultato = []
+    for (const r of righe) {
+      const partecipanti = await caricaPartecipantiUscita(r)
+      if (r.istruttore && !cacheIstruttori.has(r.istruttore)) {
+        cacheIstruttori.set(r.istruttore, await cercaInfoIstruttore(supabase, r.istruttore))
+      }
+      risultato.push(...righeRegistro(comuniUscita(r, cacheIstruttori.get(r.istruttore)), partecipanti))
+    }
+    return risultato
+  }
 
-  function esporta() {
-    scaricaCSV('registro-immersioni-post-evento.csv', colonneCSV, righe)
+  async function esporta() {
+    setGenerandoCsv(true)
+    setError(null)
+    try {
+      scaricaCSV('registro-immersioni-post-evento.csv', COLONNE_REGISTRO, await preparaRighePost())
+    } catch (err) {
+      setError('Errore nella generazione del CSV: ' + err.message)
+    }
+    setGenerandoCsv(false)
   }
 
   async function esportaPdf(r, i) {
     setGenerandoPdf(i)
     setError(null)
     try {
-      const { data: partecipantiGrezzi, error: rpcError } = await supabase.rpc('registro_immersioni_partecipanti', {
-        p_data: r.data,
-        p_ora_inizio: r.ora_inizio,
-        p_ora_fine: r.ora_fine,
-        p_localita: r.localita,
-        p_centro: r.centro_immersione,
-        p_istruttore: r.istruttore,
-      })
-      if (rpcError) throw rpcError
-
-      const clienteIds = (partecipantiGrezzi || []).map((p) => p.cliente_id)
-      const brevettoPerCliente = await caricaBrevettoPrincipalePerClienti(clienteIds)
-
-      const partecipanti = (partecipantiGrezzi || []).map((p) => {
-        const brevetto = brevettoPerCliente.get(p.cliente_id)
-        return {
-          cliente_id: p.cliente_id,
-          nome: p.nome,
-          cognome: p.cognome,
-          brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto registrato',
-          immagine_url: brevetto?.immagine_url || null,
-          livello: brevetto?.livello ?? null,
-          haIstruttore: !!brevetto?.haIstruttore,
-        }
-      })
-      const partecipantiOrdinati = ordinaPartecipanti(partecipanti)
-
+      const partecipanti = await caricaPartecipantiUscita(r)
       const istruttoreInfo = await cercaInfoIstruttore(supabase, r.istruttore)
-
-      await generaPdfRegistroUscita(r, partecipantiOrdinati, istruttoreInfo)
+      await generaPdfRegistroUscita(r, partecipanti, istruttoreInfo)
     } catch (err) {
       setError('Errore nella generazione del PDF: ' + err.message)
     }
@@ -157,13 +170,13 @@ function RegistroPostEvento() {
       <div className="catalogo-sezione-header">
         <div />
         <span className="catalogo-azioni">
-          <button className="btn-primary" onClick={esporta} disabled={righe.length === 0}>
-            Esporta CSV
+          <button className="btn-primary" onClick={esporta} disabled={righe.length === 0 || generandoCsv}>
+            {generandoCsv ? 'Preparo il CSV…' : 'Esporta CSV'}
           </button>
           <BottoneDrive
             nomeFile="registro-immersioni-post-evento.csv"
-            colonne={colonneCSV}
-            righe={righe}
+            colonne={COLONNE_REGISTRO}
+            preparaRighe={preparaRighePost}
             disabled={righe.length === 0}
           />
         </span>
@@ -216,7 +229,7 @@ function RegistroPreEvento() {
   const [loadingIscritti, setLoadingIscritti] = useState(false)
   const [error, setError] = useState(null)
   const [generandoPdf, setGenerandoPdf] = useState(false)
-  const [datiPdf, setDatiPdf] = useState(null)
+  const [datiExport, setDatiExport] = useState({ localita: '', centro: '' })
 
   useEffect(() => {
     caricaOccorrenze()
@@ -287,34 +300,39 @@ function RegistroPreEvento() {
 
   const attivitaSelezionata = occorrenze.find((o) => o.id === selezionata)
 
-  const colonneCSV = [
-    { chiave: 'cognome', etichetta: 'Cognome' },
-    { chiave: 'nome', etichetta: 'Nome' },
-    { chiave: 'brevetto_descrizione', etichetta: 'Brevetto più alto' },
-  ]
+  // Località e centro: partono dai valori salvati sull'attività e si possono
+  // correggere qui; valgono per PDF, CSV e Drive, così i documenti sono congruenti.
+  useEffect(() => {
+    setDatiExport({
+      localita: attivitaSelezionata?.localita || '',
+      centro: attivitaSelezionata?.centro_immersione || '',
+    })
+  }, [selezionata, occorrenze])
+
+  const righeExport = attivitaSelezionata
+    ? righeRegistro(
+        comuniPreEvento(attivitaSelezionata, {
+          localita: datiExport.localita.trim(),
+          centro: datiExport.centro.trim(),
+        }),
+        iscritti
+      )
+    : []
 
   function esporta() {
     if (!attivitaSelezionata) return
-    scaricaCSV(`registro-pre-evento-${attivitaSelezionata.data}.csv`, colonneCSV, iscritti)
+    scaricaCSV(`registro-pre-evento-${attivitaSelezionata.data}.csv`, COLONNE_REGISTRO, righeExport)
   }
 
-  function apriFinestraPdf() {
+  async function esportaPdf() {
     if (!attivitaSelezionata) return
-    setDatiPdf({
-      localita: attivitaSelezionata.localita || '',
-      centro: attivitaSelezionata.centro_immersione || '',
-    })
-  }
-
-  async function esportaPdf(e) {
-    e?.preventDefault()
-    if (!attivitaSelezionata || !datiPdf) return
-    const dati = { localita: datiPdf.localita.trim(), centro: datiPdf.centro.trim() }
-    setDatiPdf(null)
     setGenerandoPdf(true)
     setError(null)
     try {
-      await generaPdfRegistroPreEvento(attivitaSelezionata, iscritti, dati)
+      await generaPdfRegistroPreEvento(attivitaSelezionata, iscritti, {
+        localita: datiExport.localita.trim(),
+        centro: datiExport.centro.trim(),
+      })
     } catch (err) {
       setError('Errore nella generazione del PDF: ' + err.message)
     }
@@ -343,19 +361,39 @@ function RegistroPreEvento() {
 
       {selezionata && (
         <>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Località (per il documento)</label>
+              <input
+                value={datiExport.localita}
+                onChange={(e) => setDatiExport((p) => ({ ...p, localita: e.target.value }))}
+              />
+            </div>
+            <div className="form-field">
+              <label>Centro di immersione (per il documento)</label>
+              <input
+                value={datiExport.centro}
+                onChange={(e) => setDatiExport((p) => ({ ...p, centro: e.target.value }))}
+              />
+            </div>
+          </div>
+          <p className="modelli-hint">
+            Partono dai valori dell'attività e valgono per PDF, CSV e Drive di questa esportazione.
+            Per salvarli in modo stabile: Attività → Modifica.
+          </p>
           <div className="catalogo-sezione-header">
             <div />
             <span className="catalogo-azioni">
               <button className="btn-primary" onClick={esporta} disabled={iscritti.length === 0}>
                 Esporta CSV
               </button>
-              <button className="btn-secondary" onClick={apriFinestraPdf} disabled={iscritti.length === 0 || generandoPdf}>
+              <button className="btn-secondary" onClick={esportaPdf} disabled={iscritti.length === 0 || generandoPdf}>
                 {generandoPdf ? 'Preparo il PDF…' : 'Esporta PDF'}
               </button>
               <BottoneDrive
                 nomeFile={attivitaSelezionata ? `registro-pre-evento-${attivitaSelezionata.data}.csv` : 'registro-pre-evento.csv'}
-                colonne={colonneCSV}
-                righe={iscritti}
+                colonne={COLONNE_REGISTRO}
+                righe={righeExport}
                 disabled={iscritti.length === 0}
               />
             </span>
@@ -377,42 +415,6 @@ function RegistroPreEvento() {
             </ul>
           )}
         </>
-      )}
-
-      {datiPdf && (
-        <div className="modale-overlay" onClick={() => setDatiPdf(null)}>
-          <div className="modale" onClick={(e) => e.stopPropagation()}>
-            <h2>Dati per il PDF</h2>
-            <form onSubmit={esportaPdf} className="modello-form">
-              <p className="modelli-hint">
-                Facoltativi: valgono solo per questo documento. Si possono salvare in modo
-                stabile dal form dell'attività (Attività → Modifica).
-              </p>
-              <div className="form-field">
-                <label>Località</label>
-                <input
-                  value={datiPdf.localita}
-                  onChange={(e) => setDatiPdf((p) => ({ ...p, localita: e.target.value }))}
-                />
-              </div>
-              <div className="form-field">
-                <label>Centro di immersione</label>
-                <input
-                  value={datiPdf.centro}
-                  onChange={(e) => setDatiPdf((p) => ({ ...p, centro: e.target.value }))}
-                />
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn-secondary" onClick={() => setDatiPdf(null)}>
-                  Annulla
-                </button>
-                <button type="submit" className="btn-primary">
-                  Genera PDF
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
       )}
     </div>
   )

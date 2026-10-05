@@ -7,7 +7,7 @@ import { caricaSuDrive, driveConfigurato } from '../lib/googleDrive'
  * già usato per "Esporta CSV" e lo carica direttamente nel Drive
  * dell'utente collegato (senza passare dal download del browser).
  */
-export default function BottoneDrive({ nomeFile, colonne, righe, disabled }) {
+export default function BottoneDrive({ nomeFile, colonne, righe, preparaRighe, disabled }) {
   const [stato, setStato] = useState('inattivo') // inattivo | caricamento | fatto | errore
   const [messaggio, setMessaggio] = useState('')
 
@@ -17,7 +17,9 @@ export default function BottoneDrive({ nomeFile, colonne, righe, disabled }) {
     setStato('caricamento')
     setMessaggio('')
     try {
-      const csv = generaCSV(colonne, righe)
+      // `preparaRighe` (facoltativa): funzione asincrona che costruisce le righe
+      // al momento del click (quando servono letture dal database).
+      const csv = generaCSV(colonne, preparaRighe ? await preparaRighe() : righe)
       const risultato = await caricaSuDrive(nomeFile, csv)
       setStato('fatto')
       setMessaggio(risultato.webViewLink ? 'Caricato su Drive.' : 'Caricato su Drive.')
