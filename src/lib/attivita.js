@@ -27,3 +27,20 @@ export function formattaDataOra(valore) {
     minute: '2-digit',
   })
 }
+
+// I campi <input type="datetime-local"> danno un orario "da orologio" senza
+// fuso (es. 2026-10-10T10:00). Salvato così, Postgres lo legge come UTC e
+// l'app lo rimostra spostato di 1-2 ore: lo convertiamo in un istante vero
+// (interpretato nel fuso del browser) prima di salvarlo...
+export function inputLocaleAIso(valore) {
+  if (!valore) return null
+  return new Date(valore).toISOString()
+}
+
+// ...e facciamo l'operazione inversa quando lo rimettiamo in un form.
+export function isoAInputLocale(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}
