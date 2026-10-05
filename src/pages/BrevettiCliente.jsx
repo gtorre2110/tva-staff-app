@@ -32,7 +32,7 @@ export default function BrevettiCliente({ clienteId }) {
     const [{ data: mieB, error: e1 }, { data: tipiData }, { data: istrData }] = await Promise.all([
       supabase
         .from('brevetti')
-        .select('*, tipi_brevetto(didattica, tipo_brevetto, livello), istruttori(nome)')
+        .select('*, tipi_brevetto(didattica, tipo_brevetto, livello, immagine_url), istruttori(nome)')
         .eq('cliente_id', clienteId)
         .order('data_emissione', { ascending: false }),
       supabase.from('tipi_brevetto').select('*').order('didattica').order('tipo_brevetto'),
@@ -123,6 +123,16 @@ export default function BrevettiCliente({ clienteId }) {
                   {b.data_emissione ? ` · emesso ${formattaData(b.data_emissione)}` : ''}
                 </span>
                 <span className="catalogo-azioni">
+                  {(b.immagine_url || b.tipi_brevetto?.immagine_url) && (
+                    <a
+                      className="btn-secondary"
+                      href={b.immagine_url || b.tipi_brevetto?.immagine_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Vedi immagine
+                    </a>
+                  )}
                   {b.immagine_url && !isAssistente && (
                     <button className="btn-secondary" onClick={() => eliminaImmagineBrevetto(b)}>
                       Elimina immagine
