@@ -4,12 +4,13 @@ import { scaricaCSV } from '../lib/csv'
 import BottoneDrive from '../components/BottoneDrive'
 import { formattaData, formattaOra } from '../lib/attivita'
 import { generaPdfRegistroUscita, generaPdfRegistroPreEvento, cercaInfoIstruttore } from '../lib/generaPdfRegistro'
-import { selezionaBrevettoPrincipale } from '../lib/brevetti'
+import { selezionaBrevettoPrincipale, ordinaPartecipanti } from '../lib/brevetti'
 import './Cataloghi.css'
+import './Modelli.css'
 import './RegistroImmersioni.css'
 
 const SELEZIONE_BREVETTI =
-  'cliente_id, immagine_url, brevetto_riferimento, didattica_libera, tipo_brevetto_libero, livello_libero, tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url)'
+  'cliente_id, immagine_url, brevetto_riferimento, didattica_libera, tipo_brevetto_libero, livello_libero, tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url, istruttore)'
 
 // Per una lista di cliente_id, restituisce una Map cliente_id -> brevetto
 // "principale" (vedi selezionaBrevettoPrincipale): usata sia dal registro
@@ -137,18 +138,14 @@ function RegistroPostEvento() {
           brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto registrato',
           immagine_url: brevetto?.immagine_url || null,
           livello: brevetto?.livello ?? null,
+          haIstruttore: !!brevetto?.haIstruttore,
         }
       })
-      partecipanti.sort((a, b) => {
-        const livelloA = a.livello ?? -Infinity
-        const livelloB = b.livello ?? -Infinity
-        if (livelloB !== livelloA) return livelloB - livelloA
-        return (a.cognome || '').localeCompare(b.cognome || '')
-      })
+      const partecipantiOrdinati = ordinaPartecipanti(partecipanti)
 
       const istruttoreInfo = await cercaInfoIstruttore(supabase, r.istruttore)
 
-      await generaPdfRegistroUscita(r, partecipanti, istruttoreInfo)
+      await generaPdfRegistroUscita(r, partecipantiOrdinati, istruttoreInfo)
     } catch (err) {
       setError('Errore nella generazione del PDF: ' + err.message)
     }
@@ -219,6 +216,7 @@ function RegistroPreEvento() {
   const [loadingIscritti, setLoadingIscritti] = useState(false)
   const [error, setError] = useState(null)
   const [generandoPdf, setGenerandoPdf] = useState(false)
+  const [datiPdf, setDatiPdf] = useState(null)
 
   useEffect(() => {
     caricaOccorrenze()
@@ -233,7 +231,7 @@ function RegistroPreEvento() {
     setLoading(true)
     const { data, error: fetchError } = await supabase
       .from('attivita')
-      .select('id, nome, data, ora_inizio, ora_fine')
+      .select('id, nome, data, ora_inizio, ora_fine, localita, centro_immersione')
       .order('data', { ascending: false })
       .limit(100)
     if (fetchError) setError(fetchError.message)
@@ -277,19 +275,13 @@ function RegistroPreEvento() {
         brevetto_descrizione: brevetto?.descrizione || 'Nessun brevetto registrato',
         immagine_url: brevetto?.immagine_url || null,
         livello: brevetto?.livello ?? null,
+        haIstruttore: !!brevetto?.haIstruttore,
       }
     })
 
-    // Ordine per brevetto (livello decrescente), a parità per cognome —
-    // stesso criterio del registro post-evento.
-    elenco.sort((a, b) => {
-      const livelloA = a.livello ?? -Infinity
-      const livelloB = b.livello ?? -Infinity
-      if (livelloB !== livelloA) return livelloB - livelloA
-      return (a.cognome || '').localeCompare(b.cognome || '')
-    })
-
-    setIscritti(elenco)
+    // Prima chi ha un brevetto da istruttore, poi livello decrescente e
+    // cognome — stesso criterio del registro post-evento.
+    setIscritti(ordinaPartecipanti(elenco))
     setLoadingIscritti(false)
   }
 
@@ -306,12 +298,23 @@ function RegistroPreEvento() {
     scaricaCSV(`registro-pre-evento-${attivitaSelezionata.data}.csv`, colonneCSV, iscritti)
   }
 
-  async function esportaPdf() {
+  function apriFinestraPdf() {
     if (!attivitaSelezionata) return
+    setDatiPdf({
+      localita: attivitaSelezionata.localita || '',
+      centro: attivitaSelezionata.centro_immersione || '',
+    })
+  }
+
+  async function esportaPdf(e) {
+    e?.preventDefault()
+    if (!attivitaSelezionata || !datiPdf) return
+    const dati = { localita: datiPdf.localita.trim(), centro: datiPdf.centro.trim() }
+    setDatiPdf(null)
     setGenerandoPdf(true)
     setError(null)
     try {
-      await generaPdfRegistroPreEvento(attivitaSelezionata, iscritti)
+      await generaPdfRegistroPreEvento(attivitaSelezionata, iscritti, dati)
     } catch (err) {
       setError('Errore nella generazione del PDF: ' + err.message)
     }
@@ -346,7 +349,7 @@ function RegistroPreEvento() {
               <button className="btn-primary" onClick={esporta} disabled={iscritti.length === 0}>
                 Esporta CSV
               </button>
-              <button className="btn-secondary" onClick={esportaPdf} disabled={iscritti.length === 0 || generandoPdf}>
+              <button className="btn-secondary" onClick={apriFinestraPdf} disabled={iscritti.length === 0 || generandoPdf}>
                 {generandoPdf ? 'Preparo il PDF…' : 'Esporta PDF'}
               </button>
               <BottoneDrive
@@ -374,6 +377,42 @@ function RegistroPreEvento() {
             </ul>
           )}
         </>
+      )}
+
+      {datiPdf && (
+        <div className="modale-overlay" onClick={() => setDatiPdf(null)}>
+          <div className="modale" onClick={(e) => e.stopPropagation()}>
+            <h2>Dati per il PDF</h2>
+            <form onSubmit={esportaPdf} className="modello-form">
+              <p className="modelli-hint">
+                Facoltativi: valgono solo per questo documento. Si possono salvare in modo
+                stabile dal form dell'attività (Attività → Modifica).
+              </p>
+              <div className="form-field">
+                <label>Località</label>
+                <input
+                  value={datiPdf.localita}
+                  onChange={(e) => setDatiPdf((p) => ({ ...p, localita: e.target.value }))}
+                />
+              </div>
+              <div className="form-field">
+                <label>Centro di immersione</label>
+                <input
+                  value={datiPdf.centro}
+                  onChange={(e) => setDatiPdf((p) => ({ ...p, centro: e.target.value }))}
+                />
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn-secondary" onClick={() => setDatiPdf(null)}>
+                  Annulla
+                </button>
+                <button type="submit" className="btn-primary">
+                  Genera PDF
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )

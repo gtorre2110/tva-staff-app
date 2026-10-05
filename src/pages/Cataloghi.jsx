@@ -6,7 +6,7 @@ import CatalogoSemplice from './CatalogoSemplice'
 import { useIsAssistente } from '../lib/membroContext'
 import './Cataloghi.css'
 
-const TIPO_VUOTO = { didattica: '', tipo_brevetto: '', livello: '', note: '' }
+const TIPO_VUOTO = { didattica: '', tipo_brevetto: '', livello: '', note: '', istruttore: false }
 const ISTRUTTORE_VUOTO = { nome: '', didattica: '', numero_brevetto_istruttore: '' }
 
 const SCHEDE = [
@@ -144,6 +144,7 @@ function TipiBrevettoTab({ soloAggiungi }) {
       tipo_brevetto: (form.tipo_brevetto || '').trim(),
       livello: form.livello === '' ? null : Number(form.livello),
       note: (form.note || '').trim() || null,
+      istruttore: !!form.istruttore,
     }
 
     const opError = form.id
@@ -185,6 +186,7 @@ function TipiBrevettoTab({ soloAggiungi }) {
               <span>
                 <strong>{t.didattica}</strong> — {t.tipo_brevetto}
                 {t.livello && ` (${t.livello})`}
+                {t.istruttore && <span className="badge badge-neutro" style={{ marginLeft: '0.4rem' }}>Istruttore</span>}
               </span>
               {!soloAggiungi && (
                 <span className="catalogo-azioni">
@@ -229,6 +231,16 @@ function TipiBrevettoTab({ soloAggiungi }) {
                   value={form.livello === null ? '' : form.livello}
                   onChange={(e) => setForm((p) => ({ ...p, livello: e.target.value }))}
                 />
+              </div>
+              <div className="form-field">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={!!form.istruttore}
+                    onChange={(e) => setForm((p) => ({ ...p, istruttore: e.target.checked }))}
+                  />{' '}
+                  Brevetto da istruttore (nei registri PDF questi partecipanti vengono per primi)
+                </label>
               </div>
               <div className="form-field">
                 <label>Note (facoltative)</label>

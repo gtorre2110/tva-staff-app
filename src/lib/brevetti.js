@@ -18,10 +18,14 @@ export function ordinaBrevetti(lista) {
 // join `tipi_brevetto(tipo_brevetto, didattica, livello, immagine_url)`.
 export function selezionaBrevettoPrincipale(brevettiCliente) {
   let scelto = null
+  // Il cliente ha almeno un brevetto da istruttore (anche se quello
+  // mostrato, perché marcato come riferimento, è un altro)?
+  let haIstruttore = false
 
   for (const b of brevettiCliente || []) {
     const didattica = b.tipi_brevetto?.didattica || b.didattica_libera
     const tipo = b.tipi_brevetto?.tipo_brevetto || b.tipo_brevetto_libero
+    if (b.tipi_brevetto?.istruttore) haIstruttore = true
     const livello = typeof b.tipi_brevetto?.livello === 'number' ? b.tipi_brevetto.livello : null
     const info = {
       livello,
@@ -39,5 +43,18 @@ export function selezionaBrevettoPrincipale(brevettiCliente) {
     }
   }
 
-  return scelto
+  if (!scelto) return haIstruttore ? { livello: null, descrizione: '', immagine_url: null, haIstruttore } : null
+  return { ...scelto, haIstruttore }
+}
+
+// Ordine dei partecipanti nei registri: prima chi ha un brevetto da
+// istruttore, poi per livello decrescente, a parità per cognome e nome.
+export function ordinaPartecipanti(lista) {
+  return [...lista].sort((a, b) => {
+    if (!!b.haIstruttore !== !!a.haIstruttore) return b.haIstruttore ? 1 : -1
+    const livelloA = a.livello ?? -Infinity
+    const livelloB = b.livello ?? -Infinity
+    if (livelloB !== livelloA) return livelloB - livelloA
+    return `${a.cognome || ''} ${a.nome || ''}`.localeCompare(`${b.cognome || ''} ${b.nome || ''}`)
+  })
 }

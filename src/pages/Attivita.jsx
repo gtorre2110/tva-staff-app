@@ -15,6 +15,8 @@ const VUOTO = {
   posti_massimi: 10,
   apertura_prenotazioni: '',
   chiusura_prenotazioni: '',
+  localita: '',
+  centro_immersione: '',
 }
 
 export default function Attivita() {
@@ -103,6 +105,8 @@ export default function Attivita() {
       posti_massimi: a.posti_massimi,
       apertura_prenotazioni: isoAInputLocale(a.apertura_prenotazioni),
       chiusura_prenotazioni: isoAInputLocale(a.chiusura_prenotazioni),
+      localita: a.localita || '',
+      centro_immersione: a.centro_immersione || '',
     })
   }
 
@@ -127,6 +131,8 @@ export default function Attivita() {
       posti_massimi: Number(form.posti_massimi),
       apertura_prenotazioni: inputLocaleAIso(form.apertura_prenotazioni),
       chiusura_prenotazioni: inputLocaleAIso(form.chiusura_prenotazioni),
+      localita: (form.localita || '').trim() || null,
+      centro_immersione: (form.centro_immersione || '').trim() || null,
     }
 
     const { error: salvaError } = form.id
@@ -328,6 +334,23 @@ export default function Attivita() {
                     value={form.chiusura_prenotazioni}
                     onChange={(e) => aggiorna('chiusura_prenotazioni', e.target.value)}
                     required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label>Località (facoltativa)</label>
+                  <input
+                    value={form.localita || ''}
+                    onChange={(e) => aggiorna('localita', e.target.value)}
+                  />
+                </div>
+                <div className="form-field">
+                  <label>Centro di immersione (facoltativo)</label>
+                  <input
+                    value={form.centro_immersione || ''}
+                    onChange={(e) => aggiorna('centro_immersione', e.target.value)}
                   />
                 </div>
               </div>

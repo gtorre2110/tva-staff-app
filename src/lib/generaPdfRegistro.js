@@ -78,11 +78,14 @@ function scriviIntestazioneSezione(doc, testo, y) {
 }
 
 // Disegna la tabella riepilogativa con tutti i campi previsti dalla
-// normativa. `partecipanti` e `istruttore` arrivano come array di righe
-// testuali già pronte (una per riga nella cella), così "Partecipanti" e
-// "Brevetti" restano allineati per indice.
+// normativa: UNA RIGA PER PARTECIPANTE, con i dati comuni (data, orari,
+// località, centro, istruttore, profondità, autorespiratori, miscele)
+// ripetuti su ogni riga. `righe` è un array di { partecipante, brevetto }.
 function scriviTabellaRiepilogo(doc, y, campi) {
-  const { data, oraInizio, oraFine, localita, centro, istruttoreNome, istruttoreInfo, righePartecipanti, righeBrevetti, profondita, autorespiratori, miscele } = campi
+  const { data, oraInizio, oraFine, localita, centro, istruttoreNome, istruttoreInfo, righe, profondita, autorespiratori, miscele } = campi
+  const comuni = [data || '', oraInizio || '', oraFine || '', localita || '', centro || '', istruttoreNome || '', istruttoreInfo || '']
+  const finali = [profondita || '', autorespiratori || '', miscele || '']
+  const elenco = righe && righe.length > 0 ? righe : [{ partecipante: '', brevetto: '' }]
 
   autoTable(doc, {
     startY: y,
@@ -99,29 +102,14 @@ function scriviTabellaRiepilogo(doc, y, campi) {
         'Centro di immersione',
         'Istruttore',
         'Istruttore (didattica — n. brevetto)',
-        'Partecipanti',
-        'Brevetti',
+        'Partecipante',
+        'Brevetto',
         'Profondità massima (m)',
         'Autorespiratore/i',
         'Miscela/e',
       ],
     ],
-    body: [
-      [
-        data || '',
-        oraInizio || '',
-        oraFine || '',
-        localita || '',
-        centro || '',
-        istruttoreNome || '',
-        istruttoreInfo || '',
-        righePartecipanti.join('\n') || '',
-        righeBrevetti.join('\n') || '',
-        profondita || '',
-        autorespiratori || '',
-        miscele || '',
-      ],
-    ],
+    body: elenco.map((r) => [...comuni, r.partecipante || '', r.brevetto || '', ...finali]),
   })
 
   return doc.lastAutoTable.finalY + 10
@@ -221,8 +209,10 @@ export async function generaPdfRegistroUscita(riga, partecipanti, istruttoreInfo
     centro: riga.centro_immersione,
     istruttoreNome: riga.istruttore,
     istruttoreInfo: testoInfoIstruttore(istruttoreInfo),
-    righePartecipanti: partecipanti.map((p) => `${p.cognome || ''} ${p.nome || ''}`.trim()),
-    righeBrevetti: partecipanti.map((p) => p.brevetto_descrizione || '—'),
+    righe: partecipanti.map((p) => ({
+      partecipante: `${p.cognome || ''} ${p.nome || ''}`.trim(),
+      brevetto: p.brevetto_descrizione || '—',
+    })),
     profondita: riga.profondita_massima_raggiunta ? `${riga.profondita_massima_raggiunta}` : '',
     autorespiratori: riga.autorespiratori,
     miscele: riga.miscele,
@@ -235,7 +225,7 @@ export async function generaPdfRegistroUscita(riga, partecipanti, istruttoreInfo
   doc.save(`registro-${nomeFileSicuro(riga.localita)}-${riga.data}.pdf`)
 }
 
-export async function generaPdfRegistroPreEvento(attivita, iscritti) {
+export async function generaPdfRegistroPreEvento(attivita, iscritti, extra = {}) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' })
   let y = scriviTitolo(doc, `${attivita.nome || 'Attività'} — ${formattaData(attivita.data)}`)
 
@@ -243,12 +233,14 @@ export async function generaPdfRegistroPreEvento(attivita, iscritti) {
     data: formattaData(attivita.data),
     oraInizio: formattaOra(attivita.ora_inizio),
     oraFine: attivita.ora_fine ? formattaOra(attivita.ora_fine) : '',
-    localita: '',
-    centro: '',
+    localita: extra.localita || '',
+    centro: extra.centro || '',
     istruttoreNome: '',
     istruttoreInfo: '',
-    righePartecipanti: iscritti.map((p) => `${p.cognome || ''} ${p.nome || ''}`.trim()),
-    righeBrevetti: iscritti.map((p) => p.brevetto_descrizione || '—'),
+    righe: iscritti.map((p) => ({
+      partecipante: `${p.cognome || ''} ${p.nome || ''}`.trim(),
+      brevetto: p.brevetto_descrizione || '—',
+    })),
     profondita: '',
     autorespiratori: '',
     miscele: '',
