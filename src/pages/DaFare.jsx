@@ -138,9 +138,11 @@ export default function DaFare({ membro }) {
                   <button className="btn-primary" onClick={() => confermaCategoria(r)}>
                     Conferma
                   </button>
-                  <button className="btn-secondary" onClick={() => rifiutaCategoria(r)}>
-                    Rifiuta
-                  </button>
+                  {!isAssistente && (
+                    <button className="btn-secondary" onClick={() => rifiutaCategoria(r)}>
+                      Rifiuta
+                    </button>
+                  )}
                 </span>
               </li>
             ))}
