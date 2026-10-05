@@ -15,7 +15,7 @@
 
 .movimenti-form {
   display: grid;
-  grid-template-columns: 7rem 1fr 9rem auto;
+  grid-template-columns: 7rem 1fr 9rem;
   gap: 0.6rem;
 }
 
@@ -93,6 +93,9 @@
   .movimenti-form {
     grid-template-columns: 1fr;
   }
+  .movimenti-form .movimenti-attivita {
+    grid-column: 1;
+  }
 }
 
 .badge-ok {
@@ -166,9 +169,17 @@
   margin: 0.35rem 0 0;
 }
 
-.movimenti-attivita {
-  grid-column: 1 / -1;
+.movimenti-form input[type='number'] { order: 1; }
+.movimenti-form input[type='text'] { order: 2; }
+.movimenti-form .movimenti-data-input { order: 3; }
+
+.movimenti-form button[type='submit'] {
   order: 5;
+}
+
+.movimenti-form .movimenti-attivita {
+  grid-column: 1 / 3;
+  order: 4;
   font-family: var(--font-body);
   font-size: 0.9rem;
   padding: 0.55rem 0.7rem;
@@ -177,4 +188,10 @@
   background: #fff;
   color: var(--ink);
   min-width: 0;
+}
+
+@media (max-width: 500px) {
+  .movimenti-form .movimenti-attivita {
+    grid-column: 1;
+  }
 }
