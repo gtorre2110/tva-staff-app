@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useBozza } from '../lib/useBozza'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
+import BetaBanner from '../components/BetaBanner'
 import './Login.css'
 
 const VUOTO = { nome: '', cognome: '' }
@@ -40,6 +41,7 @@ export default function RichiediAccesso({ onCompletato }) {
     <div className="login-screen">
       <div className="login-hero">
         <div className="login-hero-content">
+          <BetaBanner />
           <img src={logo} alt="Logo" className="login-hero-logo" />
           <span className="login-hero-kicker">Ultimo passo</span>
           <h1>I tuoi dati</h1>

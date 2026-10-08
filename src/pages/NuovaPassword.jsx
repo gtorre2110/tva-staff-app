@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
+import BetaBanner from '../components/BetaBanner'
 import CampoPassword from '../components/CampoPassword'
 import './Login.css'
 
@@ -36,6 +37,7 @@ export default function NuovaPassword({ onCompletato }) {
     <div className="login-screen">
       <div className="login-hero">
         <div className="login-hero-content">
+          <BetaBanner />
           <img src={logo} alt="Logo" className="login-hero-logo" />
           <span className="login-hero-kicker">Recupero accesso</span>
           <h1>Nuova password</h1>

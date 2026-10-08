@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
+import BetaBanner from '../components/BetaBanner'
 import CampoPassword from '../components/CampoPassword'
 import './Login.css'
 
@@ -45,6 +46,7 @@ export default function Registrati() {
           <circle cx="200" cy="260" r="6" fill="#2a333d" />
         </svg>
         <div className="login-hero-content">
+          <BetaBanner />
           <img src={logo} alt="Logo" className="login-hero-logo" />
           <span className="login-hero-kicker">Gestione attività</span>
           <h1>Richiedi accesso</h1>
