@@ -332,4 +332,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.7rem;
+  background: #a9d0e6;
+  border: 1px solid #7fb8d6;
+  border-radius: 8px;
 }
