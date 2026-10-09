@@ -18,7 +18,11 @@ export default function Registrati() {
     setError(null)
     setLoading(true)
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin },
+    })
 
     setLoading(false)
 
