@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient'
 import { formattaData, formattaOra, formattaDataOra, inputLocaleAIso, isoAInputLocale } from '../lib/attivita'
 import { leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
 import SelettoreCategorie from './SelettoreCategorie'
+import EsportaIscritti from '../components/EsportaIscritti'
 import { useIsAssistente } from '../lib/membroContext'
 import './Attivita.css'
 import './Cataloghi.css'
@@ -32,6 +33,7 @@ export default function Attivita() {
   const [form, setForm] = useState(null)
   const [salvataggio, setSalvataggio] = useState(false)
   const [categorieAperte, setCategorieAperte] = useState(null)
+  const [iscrittiAperti, setIscrittiAperti] = useState(null)
 
   useEffect(() => {
     carica()
@@ -237,6 +239,14 @@ export default function Attivita() {
                 Categorie
               </button>
               {!soloAggiungi && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => setIscrittiAperti(iscrittiAperti === a.id ? null : a.id)}
+                >
+                  Esporta iscritti
+                </button>
+              )}
+              {!soloAggiungi && (
                 <button className="btn-secondary" onClick={() => apriModifica(a)}>
                   Modifica
                 </button>
@@ -247,6 +257,12 @@ export default function Attivita() {
                 </button>
               )}
             </div>
+
+            {iscrittiAperti === a.id && (
+              <div className="attivita-esporta-pannello">
+                <EsportaIscritti attivita={a} soloAzioni />
+              </div>
+            )}
 
             {categorieAperte === a.id && (
               <SelettoreCategorie

@@ -35,7 +35,7 @@ function formatoDa(dataUrl) {
 // Se manca, è un PDF non ancora convertito o il caricamento fallisce
 // (CORS, file cancellato, ecc.), restituisce null: il chiamante lascia lo
 // spazio vuoto invece di bloccare l'export.
-async function caricaImmagine(url) {
+export async function caricaImmagine(url) {
   if (!url || url.toLowerCase().endsWith('.pdf')) return null
   try {
     const risposta = await fetch(url)

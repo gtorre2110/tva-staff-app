@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { formattaOra } from '../lib/attivita'
 import { certificatoScaduto, certificatoInScadenza, formattaData } from '../lib/clienti'
+import EsportaIscritti from '../components/EsportaIscritti'
 import './Dashboard.css'
 import './Cataloghi.css'
 
@@ -300,6 +301,10 @@ function CheckInAttivita({ occorrenza, macroNome, onCambia, onAggiornato }) {
           <div className="checkin-topbar-titolo">{occorrenza.nome}</div>
         </div>
         <button className="btn-secondary" onClick={onCambia}>Cambia attività</button>
+      </div>
+
+      <div className="checkin-esporta">
+        <EsportaIscritti attivita={occorrenza} />
       </div>
 
       <div className="checkin-progresso">

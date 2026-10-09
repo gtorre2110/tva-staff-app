@@ -315,3 +315,21 @@
   color: var(--ink-soft);
   margin-bottom: 0.5rem;
 }
+
+.checkin-esporta {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.esporta-iscritti {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.esporta-iscritti-azioni {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
