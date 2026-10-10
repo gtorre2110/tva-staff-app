@@ -69,6 +69,9 @@ export default function Registrati() {
               Ti abbiamo inviato un'email di conferma a <strong>{email}</strong>. Confermala,
               poi torna qui per accedere.
             </p>
+            <p className="field-hint">
+              Se non arriva nulla, potresti avere già un account: prova ad accedere.
+            </p>
             <Link to="/login" className="btn-primary" style={{ marginTop: '1.5rem' }}>
               Vai al login
             </Link>
@@ -109,6 +112,10 @@ export default function Registrati() {
 
             <p className="field-hint" style={{ marginTop: '1rem' }}>
               Hai già un account? <Link to="/login">Accedi</Link>
+            </p>
+            <p className="field-hint">
+              Hai già un account cliente? Accedi con le stesse credenziali: ti chiederemo solo
+              nome e cognome per la richiesta.
             </p>
           </form>
         )}
