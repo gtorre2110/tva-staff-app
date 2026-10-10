@@ -71,6 +71,8 @@ export default function Aiuto() {
         <ul>
           <li>Se cambi app o il telefono blocca lo schermo prima di salvare, le modifiche restano in bozza e le ritrovi al ritorno.</li>
           <li>Su smartphone il menu si apre dal pulsante rotondo in basso a destra.</li>
+          <li>Le voci di uso quotidiano sono sempre visibili; Modelli, Categorie, Cataloghi, Codici invito, Staff e Log modifiche sono raccolte sotto «Configurazione», che si apre al tocco.</li>
+          <li>«Esci» è in fondo al menu e chiede una conferma.</li>
           <li>Tutti i testi vengono salvati in maiuscolo automaticamente, per uniformità.</li>
         </ul>
       </section>
