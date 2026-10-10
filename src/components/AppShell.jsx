@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
 import BetaBanner from './BetaBanner'
@@ -8,6 +8,9 @@ import './AppShell.css'
 export default function AppShell({ session, membro }) {
   const [menuAperto, setMenuAperto] = useState(false)
   const [inSospeso, setInSospeso] = useState(0)
+  const [configAperta, setConfigAperta] = useState(false)
+  const [confermaEsci, setConfermaEsci] = useState(false)
+  const { pathname } = useLocation()
 
   const isAdmin = membro?.ruolo === 'amministratore'
   const isAssistente = membro?.ruolo === 'assistente_istruttore'
@@ -39,23 +42,79 @@ export default function AppShell({ session, membro }) {
     }
   }, [isAdmin])
 
-  const navItems = [
+  // Voci di uso quotidiano, sempre visibili.
+  const vociQuotidiane = [
+    { to: '/dashboard', label: 'Check-in' },
     { to: '/clienti', label: 'Clienti' },
-    { to: '/modelli', label: 'Modelli' },
     { to: '/attivita', label: 'Attività' },
+    { to: '/registro-immersioni', label: 'Registro immersioni' },
+    { to: '/da-fare', label: 'Da fare', badge: inSospeso },
+  ]
+
+  // Voci di configurazione, usate di rado: ripiegate in un gruppo.
+  const vociConfigurazione = [
+    { to: '/modelli', label: 'Modelli' },
     { to: '/categorie', label: 'Categorie' },
     { to: '/cataloghi', label: 'Cataloghi' },
     ...(!isAssistente ? [{ to: '/codici-invito', label: 'Codici invito' }] : []),
-    { to: '/registro-immersioni', label: 'Registro immersioni' },
-    { to: '/dashboard', label: 'Check-in' },
-    { to: '/da-fare', label: 'Da fare', badge: inSospeso },
+    ...(isAdmin ? [{ to: '/staff', label: 'Staff' }, { to: '/log-modifiche', label: 'Log modifiche' }] : []),
+  ]
+
+  const vociSecondarie = [
     { to: '/info', label: 'Info' },
     { to: '/aiuto', label: 'Aiuto' },
   ]
 
-  if (isAdmin) {
-    navItems.push({ to: '/staff', label: 'Staff' })
-    navItems.push({ to: '/log-modifiche', label: 'Log modifiche' })
+  // Il gruppo si apre da solo se la pagina corrente è una delle sue voci.
+  const inConfigurazione = vociConfigurazione.some((v) => pathname === v.to || pathname.startsWith(v.to + '/'))
+  const configVisibile = configAperta || inConfigurazione
+
+  function renderVoci(voci, classeLink, chiudi) {
+    return voci.map((item) => (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        onClick={chiudi}
+        className={({ isActive }) => classeLink + (isActive ? ' active' : '')}
+      >
+        {item.label}
+        {!!item.badge && <span className="shell-badge">{item.badge}</span>}
+      </NavLink>
+    ))
+  }
+
+  // Elenco completo delle voci: identico per barra laterale e pannello smartphone.
+  function renderMenu(classeLink, chiudi) {
+    return (
+      <>
+        {renderVoci(vociQuotidiane, classeLink, chiudi)}
+        <div className="shell-sep" />
+        <button
+          type="button"
+          className={classeLink + ' shell-gruppo-toggle' + (inConfigurazione ? ' contiene-attiva' : '')}
+          onClick={() => setConfigAperta(!configVisibile)}
+          aria-expanded={configVisibile}
+        >
+          Configurazione
+          <span className="shell-gruppo-freccia" aria-hidden="true">{configVisibile ? '▴' : '▾'}</span>
+        </button>
+        {configVisibile && (
+          <div className="shell-gruppo">{renderVoci(vociConfigurazione, classeLink, chiudi)}</div>
+        )}
+        {renderVoci(vociSecondarie, classeLink, chiudi)}
+        <div className="shell-sep" />
+        <button
+          type="button"
+          className={classeLink + ' shell-esci'}
+          onClick={() => {
+            if (chiudi) chiudi()
+            setConfermaEsci(true)
+          }}
+        >
+          Esci
+        </button>
+      </>
+    )
   }
 
   return (
@@ -69,21 +128,9 @@ export default function AppShell({ session, membro }) {
             {membro.nome} {membro.cognome}
           </p>
         )}
-        <nav className="shell-nav">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => 'shell-nav-link' + (isActive ? ' active' : '')}
-            >
-              {item.label}
-              {!!item.badge && <span className="shell-badge">{item.badge}</span>}
-            </NavLink>
-          ))}
-        </nav>
+        <nav className="shell-nav">{renderMenu('shell-nav-link')}</nav>
         <div className="shell-user">
           <span>{session.user.email}</span>
-          <button onClick={() => supabase.auth.signOut()}>Esci</button>
         </div>
       </aside>
 
@@ -123,26 +170,25 @@ export default function AppShell({ session, membro }) {
           <div className="shell-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="shell-sheet-handle" />
             <nav className="shell-sheet-nav">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMenuAperto(false)}
-                  className={({ isActive }) => 'shell-sheet-link' + (isActive ? ' active' : '')}
-                >
-                  {item.label}
-                  {!!item.badge && <span className="shell-badge">{item.badge}</span>}
-                </NavLink>
-              ))}
+              {renderMenu('shell-sheet-link', () => setMenuAperto(false))}
             </nav>
             <div className="shell-sheet-user">
               <span>{session.user.email}</span>
-              <button
-                onClick={() => {
-                  setMenuAperto(false)
-                  supabase.auth.signOut()
-                }}
-              >
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confermaEsci && (
+        <div className="shell-conferma-overlay" onClick={() => setConfermaEsci(false)}>
+          <div className="shell-conferma" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <h2>Uscire dall'app?</h2>
+            <p>Per rientrare dovrai fare di nuovo il login.</p>
+            <div className="shell-conferma-azioni">
+              <button type="button" className="btn-secondary" onClick={() => setConfermaEsci(false)}>
+                Annulla
+              </button>
+              <button type="button" className="btn-primary" onClick={() => supabase.auth.signOut()}>
                 Esci
               </button>
             </div>
