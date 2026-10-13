@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
 import BetaBanner from '../components/BetaBanner'
 import CampoPassword from '../components/CampoPassword'
+import { messaggioErroreAuth, emailGiaRegistrata } from '../lib/erroriAuth'
 import './Login.css'
 
 export default function Registrati() {
@@ -27,7 +28,14 @@ export default function Registrati() {
     setLoading(false)
 
     if (signUpError) {
-      setError(signUpError.message)
+      setError(messaggioErroreAuth(signUpError))
+      return
+    }
+
+    if (emailGiaRegistrata(data)) {
+      setError(
+        'Questa email ha già un account (anche come cliente): accedi con le stesse credenziali, ti chiederemo solo nome e cognome per la richiesta. Se non ricordi la password usa "Password dimenticata?".'
+      )
       return
     }
 

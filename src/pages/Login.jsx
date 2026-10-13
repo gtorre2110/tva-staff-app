@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { messaggioErroreAuth } from '../lib/erroriAuth'
 import logo from '../assets/logo.png'
 import CampoPassword from '../components/CampoPassword'
 import BetaBanner from '../components/BetaBanner'
@@ -25,11 +26,7 @@ export default function Login() {
     setLoading(false)
 
     if (signInError) {
-      setError(
-        signInError.message === 'Invalid login credentials'
-          ? 'Email o password non corrette.'
-          : signInError.message
-      )
+      setError(messaggioErroreAuth(signInError))
     }
   }
 

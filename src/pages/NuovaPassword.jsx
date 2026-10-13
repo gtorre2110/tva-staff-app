@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { messaggioErroreAuth } from '../lib/erroriAuth'
 import logo from '../assets/logo.png'
 import BetaBanner from '../components/BetaBanner'
 import CampoPassword from '../components/CampoPassword'
@@ -29,7 +30,7 @@ export default function NuovaPassword({ onCompletato }) {
     const { error: updateError } = await supabase.auth.updateUser({ password })
     setLoading(false)
 
-    if (updateError) setError(updateError.message)
+    if (updateError) setError(messaggioErroreAuth(updateError))
     else setFatto(true)
   }
 

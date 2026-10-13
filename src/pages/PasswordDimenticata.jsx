@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { messaggioErroreAuth } from '../lib/erroriAuth'
 import logo from '../assets/logo.png'
 import BetaBanner from '../components/BetaBanner'
 import './Login.css'
@@ -23,7 +24,7 @@ export default function PasswordDimenticata() {
     setLoading(false)
 
     if (resetError) {
-      setError(resetError.message)
+      setError(messaggioErroreAuth(resetError))
     } else {
       setInviata(true)
     }
