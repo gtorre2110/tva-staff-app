@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
-import { formattaData, formattaOra, formattaDataOra } from '../lib/attivita'
+import { formattaData, formattaOra, formattaDataOra, inputLocaleAIso, isoAInputLocale } from '../lib/attivita'
 import { leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
 import SelettoreCategorie from './SelettoreCategorie'
+import EsportaIscritti from '../components/EsportaIscritti'
 import { useIsAssistente } from '../lib/membroContext'
 import './Attivita.css'
 import './Cataloghi.css'
@@ -15,6 +16,8 @@ const VUOTO = {
   posti_massimi: 10,
   apertura_prenotazioni: '',
   chiusura_prenotazioni: '',
+  localita: '',
+  centro_immersione: '',
 }
 
 export default function Attivita() {
@@ -30,6 +33,7 @@ export default function Attivita() {
   const [form, setForm] = useState(null)
   const [salvataggio, setSalvataggio] = useState(false)
   const [categorieAperte, setCategorieAperte] = useState(null)
+  const [iscrittiAperti, setIscrittiAperti] = useState(null)
 
   useEffect(() => {
     carica()
@@ -92,10 +96,26 @@ export default function Attivita() {
     setForm(leggiBozza('attivita-nuova') || { ...VUOTO })
   }
 
+  function apriModifica(a) {
+    setError(null)
+    setForm({
+      id: a.id,
+      nome: a.nome || '',
+      data: a.data || '',
+      ora_inizio: (a.ora_inizio || '').slice(0, 5),
+      ora_fine: (a.ora_fine || '').slice(0, 5),
+      posti_massimi: a.posti_massimi,
+      apertura_prenotazioni: isoAInputLocale(a.apertura_prenotazioni),
+      chiusura_prenotazioni: isoAInputLocale(a.chiusura_prenotazioni),
+      localita: a.localita || '',
+      centro_immersione: a.centro_immersione || '',
+    })
+  }
+
   function aggiorna(campo, valore) {
     setForm((prev) => {
       const next = { ...prev, [campo]: valore }
-      scriviBozza('attivita-nuova', next)
+      if (!prev.id) scriviBozza('attivita-nuova', next)
       return next
     })
   }
@@ -111,18 +131,21 @@ export default function Attivita() {
       ora_inizio: form.ora_inizio,
       ora_fine: form.ora_fine,
       posti_massimi: Number(form.posti_massimi),
-      apertura_prenotazioni: form.apertura_prenotazioni || null,
-      chiusura_prenotazioni: form.chiusura_prenotazioni || null,
-      modello_id: null,
+      apertura_prenotazioni: inputLocaleAIso(form.apertura_prenotazioni),
+      chiusura_prenotazioni: inputLocaleAIso(form.chiusura_prenotazioni),
+      localita: (form.localita || '').trim() || null,
+      centro_immersione: (form.centro_immersione || '').trim() || null,
     }
 
-    const { error: insertError } = await supabase.from('attivita').insert(payload)
+    const { error: salvaError } = form.id
+      ? await supabase.from('attivita').update(payload).eq('id', form.id)
+      : await supabase.from('attivita').insert({ ...payload, modello_id: null })
     setSalvataggio(false)
 
-    if (insertError) {
-      setError(insertError.message)
+    if (salvaError) {
+      setError(salvaError.message)
     } else {
-      dimenticaBozza('attivita-nuova')
+      if (!form.id) dimenticaBozza('attivita-nuova')
       setForm(null)
       carica()
     }
@@ -216,11 +239,30 @@ export default function Attivita() {
                 Categorie
               </button>
               {!soloAggiungi && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => setIscrittiAperti(iscrittiAperti === a.id ? null : a.id)}
+                >
+                  Esporta iscritti
+                </button>
+              )}
+              {!soloAggiungi && (
+                <button className="btn-secondary" onClick={() => apriModifica(a)}>
+                  Modifica
+                </button>
+              )}
+              {!soloAggiungi && (
                 <button className="btn-secondary" onClick={() => toggleAnnullata(a)}>
                   {a.annullata ? 'Riattiva' : 'Annulla'}
                 </button>
               )}
             </div>
+
+            {iscrittiAperti === a.id && (
+              <div className="attivita-esporta-pannello">
+                <EsportaIscritti attivita={a} soloAzioni />
+              </div>
+            )}
 
             {categorieAperte === a.id && (
               <SelettoreCategorie
@@ -237,7 +279,7 @@ export default function Attivita() {
       {form && (
         <div className="modale-overlay" onClick={() => setForm(null)}>
           <div className="modale" onClick={(e) => e.stopPropagation()}>
-            <h2>Nuova attività una tantum</h2>
+            <h2>{form.id ? 'Modifica attività' : 'Nuova attività una tantum'}</h2>
             <form onSubmit={handleSubmit} className="modello-form">
               <div className="form-field">
                 <label>Nome</label>
@@ -308,6 +350,23 @@ export default function Attivita() {
                     value={form.chiusura_prenotazioni}
                     onChange={(e) => aggiorna('chiusura_prenotazioni', e.target.value)}
                     required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <label>Località (facoltativa)</label>
+                  <input
+                    value={form.localita || ''}
+                    onChange={(e) => aggiorna('localita', e.target.value)}
+                  />
+                </div>
+                <div className="form-field">
+                  <label>Centro di immersione (facoltativo)</label>
+                  <input
+                    value={form.centro_immersione || ''}
+                    onChange={(e) => aggiorna('centro_immersione', e.target.value)}
                   />
                 </div>
               </div>

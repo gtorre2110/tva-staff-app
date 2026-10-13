@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
+import BetaBanner from '../components/BetaBanner'
 import CampoPassword from '../components/CampoPassword'
 import './Login.css'
 
@@ -17,7 +18,11 @@ export default function Registrati() {
     setError(null)
     setLoading(true)
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin },
+    })
 
     setLoading(false)
 
@@ -45,6 +50,7 @@ export default function Registrati() {
           <circle cx="200" cy="260" r="6" fill="#2a333d" />
         </svg>
         <div className="login-hero-content">
+          <BetaBanner />
           <img src={logo} alt="Logo" className="login-hero-logo" />
           <span className="login-hero-kicker">Gestione attività</span>
           <h1>Richiedi accesso</h1>
@@ -62,6 +68,9 @@ export default function Registrati() {
             <p className="field-hint">
               Ti abbiamo inviato un'email di conferma a <strong>{email}</strong>. Confermala,
               poi torna qui per accedere.
+            </p>
+            <p className="field-hint">
+              Se non arriva nulla, potresti avere già un account: prova ad accedere.
             </p>
             <Link to="/login" className="btn-primary" style={{ marginTop: '1.5rem' }}>
               Vai al login
@@ -103,6 +112,10 @@ export default function Registrati() {
 
             <p className="field-hint" style={{ marginTop: '1rem' }}>
               Hai già un account? <Link to="/login">Accedi</Link>
+            </p>
+            <p className="field-hint">
+              Hai già un account cliente? Accedi con le stesse credenziali: ti chiederemo solo
+              nome e cognome per la richiesta.
             </p>
           </form>
         )}

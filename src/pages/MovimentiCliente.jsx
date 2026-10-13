@@ -10,6 +10,12 @@ const MOTIVI_STANDARD = [
   'Omaggio / promozione',
 ]
 
+function oggiISO() {
+  const d = new Date()
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
 export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
   const [movimenti, setMovimenti] = useState([])
   const [loading, setLoading] = useState(true)
@@ -18,6 +24,10 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
 
   const [variazione, setVariazione] = useState('')
   const [motivo, setMotivo] = useState('')
+  const [dataMovimento, setDataMovimento] = useState(oggiISO())
+  const [modelli, setModelli] = useState([])
+  const [unaTantum, setUnaTantum] = useState([])
+  const [attivitaScelta, setAttivitaScelta] = useState('')
   const [salvataggio, setSalvataggio] = useState(false)
 
   useEffect(() => {
@@ -26,7 +36,33 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
 
   useEffect(() => {
     caricaMotiviUsati()
+    caricaAttivitaSelezionabili()
   }, [])
+
+  // Modelli e attività una tantum (non le singole occorrenze dei modelli).
+  async function caricaAttivitaSelezionabili() {
+    const [{ data: mod }, { data: unt }] = await Promise.all([
+      supabase.from('attivita_modello').select('id, nome').order('nome', { ascending: true }),
+      supabase
+        .from('attivita')
+        .select('id, nome, data')
+        .is('modello_id', null)
+        .order('data', { ascending: false })
+        .limit(60),
+    ])
+    setModelli(mod || [])
+    setUnaTantum(unt || [])
+  }
+
+  function scegliAttivita(valore) {
+    setAttivitaScelta(valore)
+    if (!valore) return
+    const [tipo, id] = valore.split(':')
+    const nome = tipo === 'm'
+      ? modelli.find((m) => m.id === id)?.nome
+      : unaTantum.find((a) => a.id === id)?.nome
+    if (nome) setMotivo(nome)
+  }
 
   async function caricaMotiviUsati() {
     const { data } = await supabase
@@ -72,6 +108,11 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
       cliente_id: clienteId,
       variazione: valore,
       motivo: motivo.trim() || null,
+      // Se la data è oggi lasciamo l'orario reale (così l'ordine resta giusto);
+      // altrimenti usiamo mezzogiorno del giorno scelto.
+      ...(dataMovimento && dataMovimento !== oggiISO()
+        ? { creato_il: new Date(`${dataMovimento}T12:00:00`).toISOString() }
+        : {}),
     })
 
     setSalvataggio(false)
@@ -83,6 +124,8 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
 
     setVariazione('')
     setMotivo('')
+    setAttivitaScelta('')
+    setDataMovimento(oggiISO())
     await caricaMovimenti()
     await caricaMotiviUsati()
     onSaldoAggiornato?.()
@@ -106,6 +149,39 @@ export default function MovimentiCliente({ clienteId, onSaldoAggiornato }) {
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
           list="motivi-suggeriti"
+        />
+        <select
+          className="movimenti-attivita"
+          value={attivitaScelta}
+          onChange={(e) => scegliAttivita(e.target.value)}
+          aria-label="Attività"
+        >
+          <option value="">Attività (facoltativa)</option>
+          {modelli.length > 0 && (
+            <optgroup label="Attività ricorrenti">
+              {modelli.map((m) => (
+                <option key={m.id} value={`m:${m.id}`}>{m.nome}</option>
+              ))}
+            </optgroup>
+          )}
+          {unaTantum.length > 0 && (
+            <optgroup label="Attività una tantum">
+              {unaTantum.map((a) => (
+                <option key={a.id} value={`u:${a.id}`}>
+                  {a.nome} — {new Date(a.data).toLocaleDateString('it-IT')}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+        <input
+          type="date"
+          className="movimenti-data-input"
+          value={dataMovimento}
+          max={oggiISO()}
+          onChange={(e) => setDataMovimento(e.target.value)}
+          aria-label="Data del movimento"
+          required
         />
         <datalist id="motivi-suggeriti">
           {suggerimentiMotivo.map((m) => (

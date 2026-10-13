@@ -16,6 +16,21 @@ export function formattaData(data) {
   return new Date(data).toLocaleDateString('it-IT')
 }
 
+// Versioni generiche degli stessi controlli, usabili per qualsiasi data di
+// scadenza (DAN, FIPSAS, ecc.), non solo per il certificato medico.
+export function scadenzaPassata(data) {
+  if (!data) return false
+  const oggi = new Date().toISOString().slice(0, 10)
+  return data < oggi
+}
+
+export function scadenzaInArrivo(data, giorni = 15) {
+  if (!data || scadenzaPassata(data)) return false
+  const soglia = new Date()
+  soglia.setDate(soglia.getDate() + giorni)
+  return data <= soglia.toISOString().slice(0, 10)
+}
+
 // Data di scadenza ingressi: presa dalla prima categoria confermata del
 // cliente che ha una data_scadenza impostata (in pratica solo "Allenamento",
 // ma non si assume il nome esatto: basta che lo staff l'abbia valorizzata

@@ -9,7 +9,13 @@ import BrevettiCliente from './BrevettiCliente'
 import LogbookCliente from './LogbookCliente'
 import ConfermaModal from '../components/ConfermaModal'
 import FotoCliente from './FotoCliente'
-import { certificatoScaduto, certificatoInScadenza, scadenzaIngressiAllenamenti } from '../lib/clienti'
+import {
+  certificatoScaduto,
+  certificatoInScadenza,
+  scadenzaIngressiAllenamenti,
+  scadenzaPassata,
+  scadenzaInArrivo,
+} from '../lib/clienti'
 import { useIsAssistente } from '../lib/membroContext'
 import './ClienteDettaglio.css'
 
@@ -19,6 +25,10 @@ const VUOTO = {
   telefono: '',
   email: '',
   scadenza_certificato_medico: '',
+  dan_numero: '',
+  dan_scadenza: '',
+  fipsas_numero: '',
+  fipsas_scadenza: '',
   ingressi_disponibili: 0,
   prenotazioni_bloccate: false,
   motivo_blocco: '',
@@ -91,6 +101,10 @@ export default function ClienteDettaglio() {
       telefono: (form.telefono || '').trim() || null,
       email: (form.email || '').trim() || null,
       scadenza_certificato_medico: form.scadenza_certificato_medico || null,
+      dan_numero: (form.dan_numero || '').trim() || null,
+      dan_scadenza: form.dan_scadenza || null,
+      fipsas_numero: (form.fipsas_numero || '').trim() || null,
+      fipsas_scadenza: form.fipsas_scadenza || null,
       prenotazioni_bloccate: form.prenotazioni_bloccate,
       accetta_email: form.accetta_email,
       motivo_blocco: form.prenotazioni_bloccate ? (form.motivo_blocco || '').trim() || null : null,
@@ -253,6 +267,60 @@ export default function ClienteDettaglio() {
                 Per modificare il saldo usa "Ingressi" qui sotto, così resta lo storico.
               </span>
             )}
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="dan_numero">N. Assicurazione DAN</label>
+            <input
+              id="dan_numero"
+              value={form.dan_numero || ''}
+              onChange={(e) => aggiorna('dan_numero', e.target.value)}
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="dan_scadenza">Scadenza DAN</label>
+            <input
+              id="dan_scadenza"
+              type="date"
+              className={
+                scadenzaPassata(form.dan_scadenza)
+                  ? 'campo-cert-scaduto'
+                  : scadenzaInArrivo(form.dan_scadenza)
+                  ? 'campo-cert-in-scadenza'
+                  : ''
+              }
+              value={form.dan_scadenza || ''}
+              onChange={(e) => aggiorna('dan_scadenza', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="fipsas_numero">N. Tessera FIPSAS</label>
+            <input
+              id="fipsas_numero"
+              value={form.fipsas_numero || ''}
+              onChange={(e) => aggiorna('fipsas_numero', e.target.value)}
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="fipsas_scadenza">Scadenza FIPSAS</label>
+            <input
+              id="fipsas_scadenza"
+              type="date"
+              className={
+                scadenzaPassata(form.fipsas_scadenza)
+                  ? 'campo-cert-scaduto'
+                  : scadenzaInArrivo(form.fipsas_scadenza)
+                  ? 'campo-cert-in-scadenza'
+                  : ''
+              }
+              value={form.fipsas_scadenza || ''}
+              onChange={(e) => aggiorna('fipsas_scadenza', e.target.value)}
+            />
           </div>
         </div>
 

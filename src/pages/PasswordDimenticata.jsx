@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
+import BetaBanner from '../components/BetaBanner'
 import './Login.css'
 
 export default function PasswordDimenticata() {
@@ -32,6 +33,7 @@ export default function PasswordDimenticata() {
     <div className="login-screen">
       <div className="login-hero">
         <div className="login-hero-content">
+          <BetaBanner />
           <img src={logo} alt="Logo" className="login-hero-logo" />
           <span className="login-hero-kicker">Gestione attività</span>
           <h1>Password dimenticata</h1>

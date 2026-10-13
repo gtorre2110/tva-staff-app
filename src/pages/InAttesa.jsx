@@ -1,5 +1,6 @@
 import { supabase } from '../supabaseClient'
 import logo from '../assets/logo.png'
+import BetaBanner from '../components/BetaBanner'
 import './Login.css'
 
 export default function InAttesa() {
@@ -7,6 +8,7 @@ export default function InAttesa() {
     <div className="login-screen">
       <div className="login-hero">
         <div className="login-hero-content">
+          <BetaBanner />
           <img src={logo} alt="Logo" className="login-hero-logo" />
           <span className="login-hero-kicker">Richiesta inviata</span>
           <h1>In attesa di approvazione</h1>

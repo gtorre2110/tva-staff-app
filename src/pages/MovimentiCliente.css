@@ -15,11 +15,12 @@
 
 .movimenti-form {
   display: grid;
-  grid-template-columns: 7rem 1fr auto;
+  grid-template-columns: 7rem 1fr 9rem;
   gap: 0.6rem;
 }
 
 .movimenti-form input {
+  min-width: 0;
   font-family: var(--font-body);
   font-size: 0.9rem;
   padding: 0.55rem 0.7rem;
@@ -91,5 +92,106 @@
 @media (max-width: 500px) {
   .movimenti-form {
     grid-template-columns: 1fr;
+  }
+  .movimenti-form .movimenti-attivita {
+    grid-column: 1;
+  }
+}
+
+.badge-ok {
+  background: #e3f2e8;
+  color: var(--line-green);
+}
+
+.logbook-voci-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.logbook-voce {
+  /* .prenotazioni-list li impone display:flex sul <li>: lo sovrascriviamo
+     per tornare a un impilamento verticale delle due righe (dati / azioni). */
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch !important;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--chalk-dim);
+}
+
+.logbook-voce:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.logbook-voce-riga {
+  display: flex;
+  align-items: center;
+  min-height: 1.6rem;
+}
+
+.logbook-voce-azioni {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.logbook-voce-azioni > * {
+  min-width: 0;
+  min-height: 2.9rem;
+}
+
+.logbook-voce-azioni .badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
+  border-radius: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.3rem 0.5rem;
+}
+
+.logbook-voce-azioni button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.logbook-voce-nota {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0.35rem 0 0;
+}
+
+.movimenti-form input[type='number'] { order: 1; }
+.movimenti-form input[type='text'] { order: 2; }
+.movimenti-form .movimenti-data-input { order: 3; }
+
+.movimenti-form button[type='submit'] {
+  order: 5;
+}
+
+.movimenti-form .movimenti-attivita {
+  grid-column: 1 / 3;
+  order: 4;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border: 1.5px solid var(--chalk-dim);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  min-width: 0;
+}
+
+@media (max-width: 500px) {
+  .movimenti-form .movimenti-attivita {
+    grid-column: 1;
   }
 }

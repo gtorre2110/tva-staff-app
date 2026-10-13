@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useBozza, leggiBozza, scriviBozza, dimenticaBozza } from '../lib/useBozza'
+import { useIsAssistente } from '../lib/membroContext'
 import './Categorie.css'
 
 const VUOTO = { nome: '', categoria_padre_id: '' }
 
 export default function Categorie() {
+  const soloAggiungi = useIsAssistente()
   const [categorie, setCategorie] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -159,26 +161,30 @@ export default function Categorie() {
                   <span className="field-hint"> — ingressi in scadenza il {new Date(c.data_scadenza).toLocaleDateString('it-IT')}</span>
                 )}
               </span>
-              <span className="catalogo-azioni">
-                <button className="btn-secondary" onClick={() => apriModifica(c)}>
-                  Modifica
-                </button>
-                <button className="btn-secondary" onClick={() => elimina(c)}>
-                  Elimina
-                </button>
-              </span>
+              {!soloAggiungi && (
+                <span className="catalogo-azioni">
+                  <button className="btn-secondary" onClick={() => apriModifica(c)}>
+                    Modifica
+                  </button>
+                  <button className="btn-secondary" onClick={() => elimina(c)}>
+                    Elimina
+                  </button>
+                </span>
+              )}
             </li>
             {figlieDi(c.id).map((figlia) => (
               <li key={figlia.id} className="categorie-figlia">
                 <span>↳ {figlia.nome}</span>
-                <span className="catalogo-azioni">
-                  <button className="btn-secondary" onClick={() => apriModifica(figlia)}>
-                    Modifica
-                  </button>
-                  <button className="btn-secondary" onClick={() => elimina(figlia)}>
-                    Elimina
-                  </button>
-                </span>
+                {!soloAggiungi && (
+                  <span className="catalogo-azioni">
+                    <button className="btn-secondary" onClick={() => apriModifica(figlia)}>
+                      Modifica
+                    </button>
+                    <button className="btn-secondary" onClick={() => elimina(figlia)}>
+                      Elimina
+                    </button>
+                  </span>
+                )}
               </li>
             ))}
           </>
