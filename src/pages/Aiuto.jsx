@@ -7,13 +7,18 @@ export default function Aiuto() {
       <p className="categorie-sub">Guida rapida alle funzioni dell'app Staff.</p>
 
       <section>
+        <h2>Registrazione e accesso</h2>
+        <p>Chi entra nello staff si registra da solo con "Registrati" e resta "in attesa" finché un amministratore non lo approva e gli assegna il ruolo. Dopo la registrazione arriva un'email di conferma da aprire prima del primo accesso: può tardare qualche minuto, controlla anche nello spam. Chi ha già un account nell'app Cliente usa le stesse credenziali. Se hai dimenticato la password, nella schermata di accesso tocca "Password dimenticata?".</p>
+      </section>
+
+      <section>
         <h2>Clienti</h2>
         <p>Elenco a schede di tutti i clienti. Da una scheda puoi modificare i dati, gestire gli ingressi, le categorie, i dati anagrafici estesi, i brevetti, il logbook e la foto profilo. Ogni modifica al saldo ingressi passa da un movimento, così resta uno storico: nel modulo "Ingressi" puoi indicare la data esatta del movimento (anche passata) e scegliere un'attività tra i modelli e le attività una tantum, che compila il motivo. Nei brevetti, "Vedi immagine" apre l'immagine del brevetto (quella caricata dal cliente o, se manca, quella standard) e "Elimina immagine" toglie quella del cliente. Il pulsante "Elimina cliente" è irreversibile e cancella anche tutti i dati collegati.</p>
       </section>
 
       <section>
         <h2>Modelli e Attività</h2>
-        <p>I "Modelli" sono le attività ricorrenti: da un modello generi le "occorrenze" concrete su un intervallo di date scelto. La pagina "Attività" mostra tutte le occorrenze, filtrabili per macrocategoria con le schede in alto; puoi crearne una una tantum, modificarla (nome, data, orari, posti, apertura e chiusura prenotazioni, località e centro di immersione), annullarla/riattivarla o assegnarle delle categorie. Gli orari di apertura e chiusura delle prenotazioni sono in ora italiana. Dopo la chiusura il cliente può comunque registrare una prenotazione "tardiva": è confermata se ci sono posti, altrimenti va in fondo alla lista d'attesa, e va verificata al check-in. Modifica e annullamento non sono disponibili agli assistenti istruttori.</p>
+        <p>I "Modelli" sono le attività ricorrenti: da un modello generi le "occorrenze" concrete su un intervallo di date scelto. La pagina "Attività" mostra tutte le occorrenze, filtrabili per macrocategoria con le schede in alto; puoi crearne una una tantum, modificarla (nome, data, orari, posti, apertura e chiusura prenotazioni, località e centro di immersione), annullarla/riattivarla o assegnarle delle categorie. Gli orari di apertura e chiusura delle prenotazioni sono in ora italiana. Dopo la chiusura il cliente può comunque registrare una prenotazione "tardiva": è confermata se ci sono posti, altrimenti va in fondo alla lista d'attesa, e va verificata al check-in. Con "Esporta iscritti" (qui e nel Check-in) scarichi l'elenco degli iscritti a un'attività come PDF con le foto, come CSV o su Google Drive, se configurato. Modifica, annullamento ed esportazione degli iscritti non sono disponibili agli assistenti istruttori.</p>
       </section>
 
       <section>
@@ -33,7 +38,7 @@ export default function Aiuto() {
 
       <section>
         <h2>Check-in</h2>
-        <p>Scegli una data, vedi le attività (filtrabili per macrocategoria) con i posti occupati. Apri un'attività per cercare/aggiungere un cliente, spuntare la presenza (scala l'ingresso in automatico), o annullare una prenotazione — anche dopo che la presenza è stata registrata, a differenza del cliente. Le prenotazioni fatte dopo la chiusura sono segnalate come "TARDIVA": decidi tu chi è presente.</p>
+        <p>Scegli una data, vedi le attività (filtrabili per macrocategoria) con i posti occupati. Apri un'attività per cercare/aggiungere un cliente, spuntare la presenza (scala l'ingresso in automatico), o annullare una prenotazione — anche dopo che la presenza è stata registrata, a differenza del cliente. Le prenotazioni fatte dopo la chiusura sono segnalate come "TARDIVA": decidi tu chi è presente. Ogni persona mostra gli avvisi utili (certificato in scadenza o scaduto, ultimo ingresso, ingressi esauriti): se il certificato è scaduto o le prenotazioni del cliente sono bloccate, il pulsante diventa "Check-in (bloccato)" e chiede una conferma prima di registrare comunque la presenza.</p>
       </section>
 
       <section>
@@ -57,6 +62,11 @@ export default function Aiuto() {
       </section>
 
       <section>
+        <h2>Log modifiche</h2>
+        <p>Visibile solo agli amministratori. Elenca le modifiche ai dati (clienti, ingressi, categorie, brevetti, logbook, attività, cataloghi, codici invito, check-in, staff) con data, chi le ha fatte e il nome leggibile dell'elemento modificato.</p>
+      </section>
+
+      <section>
         <h2>Assistenti istruttori</h2>
         <p>Possono consultare, aggiungere e confermare, ma non cancellare né modificare: su Cataloghi, Modelli, Attività e Categorie possono solo aggiungere, e non possono aprire la scheda dei clienti, né vedere Codici invito, Staff e Log modifiche.</p>
       </section>
@@ -74,8 +84,11 @@ export default function Aiuto() {
           <li>Le voci di uso quotidiano sono sempre visibili; Modelli, Categorie, Cataloghi, Codici invito, Staff e Log modifiche sono raccolte sotto «Configurazione», che si apre al tocco.</li>
           <li>«Esci» è in fondo al menu e chiede una conferma.</li>
           <li>Tutti i testi vengono salvati in maiuscolo automaticamente, per uniformità.</li>
+          <li>Per installare l'app come icona: su iPhone/iPad da Safari, pulsante Condividi → "Aggiungi alla schermata Home"; su Android da Chrome, menu ⋮ → "Installa app"; su computer, icona di installazione nella barra degli indirizzi di Chrome o Edge.</li>
         </ul>
       </section>
+
+      <p className="categorie-sub">App Staff Treviso Apnea · Versione 2.0 (ottobre 2026)</p>
     </div>
   )
 }
