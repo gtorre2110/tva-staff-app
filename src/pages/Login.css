@@ -61,9 +61,20 @@
 .login-panel {
   background: var(--chalk);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 3rem 2rem;
+}
+
+/* testi sotto il modulo (es. "Richiedi accesso"): stessa larghezza del modulo */
+.login-panel > .field-hint {
+  width: 100%;
+  max-width: 22rem;
+}
+
+.login-panel a {
+  color: var(--ink);
 }
 
 .login-form {
