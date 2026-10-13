@@ -141,6 +141,7 @@
   .login-hero {
     min-height: 40vh;
     padding: 2rem;
+    padding-top: calc(2rem + env(safe-area-inset-top));
     align-items: center;
   }
 }
