@@ -83,7 +83,7 @@ export default function RegistroImmersioni() {
       <p className="categorie-sub">
         Due viste pensate per gli adempimenti della Legge 70/2006: il registro post-evento
         raggruppa le voci di logbook per uscita; quello pre-evento mostra chi è iscritto a
-        un'attività e il suo brevetto più alto.
+        un'attività e il suo brevetto principale (quello scelto dal cliente, altrimenti il più alto).
       </p>
 
       <div className="cataloghi-tabs">
