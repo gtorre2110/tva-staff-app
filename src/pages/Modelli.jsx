@@ -32,6 +32,10 @@ export default function Modelli() {
   const [generazioneStato, setGenerazioneStato] = useState(null) // { loading, messaggio, errore }
   const [sincronizzando, setSincronizzando] = useState(false)
   const [sincronizzaEsito, setSincronizzaEsito] = useState(null)
+  // Assistente: pannello categorie (solo aggiungere) sulla scheda del modello.
+  // Si apre da solo sul modello appena creato, così le categorie si assegnano
+  // prima di generare le occorrenze (che altrimenti sarebbero visibili a tutti).
+  const [categorieModelloId, setCategorieModelloId] = useState(null)
 
   useEffect(() => {
     caricaModelli()
@@ -86,9 +90,19 @@ export default function Modelli() {
       attivo: form.attivo,
     }
 
-    const opError = form.id
-      ? (await supabase.from('attivita_modello').update(payload).eq('id', form.id)).error
-      : (await supabase.from('attivita_modello').insert(payload)).error
+    let opError
+    let nuovoId = null
+    if (form.id) {
+      opError = (await supabase.from('attivita_modello').update(payload).eq('id', form.id)).error
+    } else {
+      const { data: creato, error: insertError } = await supabase
+        .from('attivita_modello')
+        .insert(payload)
+        .select('id')
+        .single()
+      opError = insertError
+      nuovoId = creato?.id || null
+    }
 
     setSalvataggio(false)
 
@@ -98,6 +112,7 @@ export default function Modelli() {
       dimenticaBozza(`modello-${form.id || 'nuovo'}`)
       setForm(null)
       caricaModelli()
+      if (soloAggiungi && nuovoId) setCategorieModelloId(nuovoId)
     }
   }
 
@@ -180,10 +195,28 @@ export default function Modelli() {
                   Modifica
                 </button>
               )}
+              {soloAggiungi && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => setCategorieModelloId(categorieModelloId === m.id ? null : m.id)}
+                >
+                  Categorie
+                </button>
+              )}
               <button className="btn-secondary" onClick={() => apriGenerazione(m.id)}>
                 Genera occorrenze
               </button>
             </div>
+
+            {soloAggiungi && categorieModelloId === m.id && (
+              <SelettoreCategorie
+                entityId={m.id}
+                joinTable="attivita_modello_categorie"
+                entityColumn="modello_id"
+                hint="Assegna le categorie prima di generare le occorrenze: quelle generate dopo le erediteranno. Senza categorie le attività sono visibili a tutti i clienti."
+                soloAggiungi
+              />
+            )}
 
             {generazione?.modelloId === m.id && (
               <form className="genera-form" onSubmit={handleGenera}>
