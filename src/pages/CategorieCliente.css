@@ -45,3 +45,7 @@
   border-color: var(--accent);
   color: var(--ink);
 }
+
+.chip:disabled {
+  cursor: default;
+}

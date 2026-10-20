@@ -359,6 +359,7 @@ export default function Modelli() {
                   joinTable="attivita_modello_categorie"
                   entityColumn="modello_id"
                   hint="Le occorrenze generate da questo modello erediteranno queste categorie."
+                  soloAggiungi={soloAggiungi}
                 />
                 <button
                   type="button"

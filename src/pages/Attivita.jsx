@@ -270,6 +270,7 @@ export default function Attivita() {
                 joinTable="attivita_categorie"
                 entityColumn="attivita_id"
                 hint="Se nessuna categoria è selezionata, l'attività resta visibile a tutti i clienti."
+                soloAggiungi={soloAggiungi}
               />
             )}
           </div>
